@@ -3,6 +3,7 @@ import gym
 import numpy as np
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
 
 
 def get_move(action):
@@ -24,7 +25,6 @@ def get_covered_users(uav_loc: np.array, user_locs: np.array, cov_range: int):
     dist_to_users = distance.cdist([uav_loc], user_locs, 'euclidean').flatten()
     return (dist_to_users <= cov_range).astype(int)
 
-
 # TODO: Work out better values for these
 # energy used hovering
 def energy_hover(t): return t / 10
@@ -35,7 +35,8 @@ def energy_move(t): return t / 12.5
 
 
 class SimpleUAVEnv(gym.Env):
-    n_users = 5
+    n_users = 100
+    n_uavs = 1
 
     # 1 unit = 100 m
 
@@ -56,24 +57,27 @@ class SimpleUAVEnv(gym.Env):
     # Simulation settings
     time_per_epoch = 10  # seconds
 
+
     def __init__(self):
         self.action_space = gym.spaces.Discrete(4)
 
         # observation space is the x, y coordinate of the UAV.
         self.observation_space = gym.spaces.Dict({
-            'uav_loc': gym.spaces.MultiDiscrete(np.array([11, 11])),
-            'cov_state': gym.spaces.MultiBinary(self.n_users),
-            'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(1,))
+            'uav_loc': gym.spaces.MultiDiscrete(np.array([11, 11], dtype=np.int32)),
+            'cov_score': gym.spaces.Box(low=0, high=1, shape=(self.n_users,), dtype=np.float32),
+            'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(1,), dtype=np.float32)
         })
 
-        self.user_locs = np.array([[i + 1, i + 1] for i in range(5)])
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[8, 3], [3, 8]], cluster_std=[0.5, 0.7], random_state=1)
 
         self.state = None
+        self.timestep = 0
 
         self.reset()
 
     def step(self, action):
         done = False
+        self.timestep += 1
 
         uav_loc = self.state['uav_loc']
 
@@ -88,21 +92,26 @@ class SimpleUAVEnv(gym.Env):
         time_hovering = self.time_per_epoch - time_moving
         energy_usage = energy_move(time_moving) + energy_hover(time_hovering)
 
+        # calculate the coverage score
+        cov_state = get_covered_users(uav_loc, self.user_locs, self.cov_range)
+        prev_cov_score = self.state['cov_score']
+        new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
+
+
+
+        # calculate reward = change in coverage score / change in total energy consumption
+        reward = sum(new_cov_score - prev_cov_score) / energy_usage
+
         # end episode if UAV runs out of battery
         if energy_usage > self.uav_bat_cap:
             done = True
 
-        # calculate the coverage score
-        cov_state = get_covered_users(uav_loc, self.user_locs, self.cov_range)
-        cov_score = float(sum(cov_state))
-
-        # calculate reward
-        reward = cov_score / energy_usage
-
         # update state
-        self.state = {'uav_loc': uav_loc,
-                      'cov_state': cov_state,
-                      'energy_used': self.state['energy_used'] + [energy_usage]}
+        self.state = {
+            'uav_loc': uav_loc,
+            'cov_score': np.array(new_cov_score, dtype=np.float32),
+            'energy_used': self.state['energy_used'] + np.array([energy_usage], dtype=np.float32)
+        }
 
         info = {}
 
@@ -111,25 +120,28 @@ class SimpleUAVEnv(gym.Env):
     def reset(self):
         self.state = {
             'uav_loc': np.array([0, 0]),
-            'cov_state': np.array([0] * self.n_users),
-            'energy_used': np.array([0])
+            'cov_score': np.array([0] * self.n_users, dtype=np.float32),
+            'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
+
         return self.state
 
     def render(self, mode="human"):
-        position = self.state['uav_loc']
-        # Render the environment to the screen
-        plt.xlim([0, 10])
-        plt.ylim([0, 10])
+        # position = self.state['uav_loc']
+        # # Render the environment to the screen
+        # plt.xlim([0, 10])
+        # plt.ylim([0, 10])
+        #
+        # plt.scatter(position[0], position[1], s=6000, color='blue', alpha=0.3)
+        # plt.scatter(position[0], position[1], color='red')
+        #
+        # plt.scatter(*zip(*self.user_locs), color='grey', s=2)
+        # plt.xlabel("X cordinate")
+        # plt.ylabel("Y cordinate")
+        # plt.pause(0.001)
+        # plt.show()
 
-        plt.scatter(position[0], position[1], s=6000, color='blue', alpha=0.3)
-        plt.scatter(position[0], position[1], color='red')
-
-        plt.scatter(*zip(*self.user_locs), color='grey', s=2)
-        plt.xlabel("X cordinate")
-        plt.ylabel("Y cordinate")
-        plt.pause(0.001)
-        plt.show()
+        return self.state['uav_loc']
 
 
 if __name__ == '__main__':
@@ -142,7 +154,7 @@ if __name__ == '__main__':
     # check_env(env)
     #
     # obs = env.reset()
-    # n_steps = 10
+    # n_steps = 5
     # for _ in range(n_steps):
     #     # Random action
     #     action = env.action_space.sample()
@@ -151,45 +163,15 @@ if __name__ == '__main__':
     #         obs = env.reset()
     #     env.render()
 
-    # model = PPO('MultiInputPolicy', env, verbose=1)
-    # model.learn(total_timesteps=10000)
-    #
-    # obs = env.reset()
-    # for _ in range(50):
-    #     action, _states = model.predict(obs)
-    #     obs, rewards, done, info = env.step(action)
-    #     env.render()
+    model = PPO('MultiInputPolicy', env, verbose=1)
+    model.learn(total_timesteps=10000)
 
+    obs = env.reset()
+    locs = []
+    for _ in range(200):
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+        locs.append(list(env.render()))
 
-
-    # from stable_baselines3 import PPO, SAC, DQN
-    # from stable_baselines3.common.evaluation import evaluate_policy
-    #
-    # env = UAVEnv()
-    # #
-    # model = SAC('MultiInputPolicy', env, verbose=1)
-    # model.learn(total_timesteps=1)
-    # model.save("uav_network")
-    # #
-    # # del model
-    # #
-    # # model = SAC.load("uav_network", env=env)
-    # #
-    # # mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1, render=True)
-    # #
-    # # print(mean_reward)
-    # # print(std_reward)
-    #
-    #
-    # from gym.wrappers import FlattenObservation
-    # from gym.spaces.utils import unflatten
-    #
-    # wrapped_env = FlattenObservation(env)
-    # obs = wrapped_env.reset()
-    # # unflatted_obs = unflatten(wrapped_env.unwrapped.observation_space, obs1)
-    #
-    # print(obs)
-    # for i in range(1000):
-    #     action, _states = model.predict(obs)
-    #     obs, rewards, dones, info = env.step(action)
-    #     env.render()
+    print(env.user_locs)
+    # print(locs)
