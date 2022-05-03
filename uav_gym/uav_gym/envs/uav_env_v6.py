@@ -1,6 +1,7 @@
 import copy
 import gym
 import numpy as np
+import networkx as nx
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
@@ -23,6 +24,41 @@ def get_move(action):
 
 def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
     return x_l_bound <= loc[0] <= x_u_bound and y_l_bound <= loc[1] <= y_u_bound
+
+
+def make_graph_from_locs(uav_locs, home_loc, comm_range):
+    """
+    :param uav_locs: np.ndarray of uav location [[x1, y1], [x2, y2],..., [xn, yn]
+    :param home_loc: location of the home base [x, y]
+    :param comm_range: an integer that represents the communication range of a UAV.
+    :return: a networkx graph of the UAVs and home with edges between UAVs that are within the communication range.
+    """
+    # TODO: Can the home base have a larger range? Can it get data from UAV?
+    all_locs = [home_loc] + uav_locs
+
+    # convert to matrix of distances between all UAVs
+    # convert to boolean matrix where True if distance < comm_range
+    M = distance.cdist(all_locs, all_locs) < comm_range
+
+    # make graph and remove self loops
+    G = nx.from_numpy_matrix(M)
+    G.remove_edges_from(nx.selfloop_edges(G))
+
+    return G
+
+
+def get_disconnected_count(G):
+    """
+    :param G: networkx graph
+    :return: the number of nodes that are unreachable from home.
+    """
+    home = 0
+
+    # Get the subgraph of all the nodes connected to home
+    s = G.subgraph(nx.shortest_path(G, home))
+
+    # Return the number of nodes not connected to home
+    return G.number_of_nodes() - s.number_of_nodes()
 
 
 def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: int):
@@ -59,6 +95,9 @@ class SimpleUAVEnv(gym.Env):
     # radius of the coverage range on the ground in units
     cov_range = 2  # units
 
+    # radius of the communication range (distance UAVs can be from each other and still communicate) in units
+    comm_range = 5  # units
+
     # uav velocity (assumes constant velocity)
     uav_vel = 1 / 9  # units / s
 
@@ -84,6 +123,7 @@ class SimpleUAVEnv(gym.Env):
         self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[8, 3], [3, 8]], cluster_std=[0.5, 0.7],
                                        random_state=1)
 
+        self.home_loc = np.array([0, 0])
         self.state = None
         self.timestep = 0
 
@@ -108,6 +148,8 @@ class SimpleUAVEnv(gym.Env):
         new_locs = np.array([maybe_locs[i] if inbounds_arr[i] else uav_locs[i] for i in range(len(moves))],
                             dtype=np.float32).flatten()
 
+        disconnected_count = get_disconnected_count(make_graph_from_locs(uav_locs, self.home_loc, self.comm_range))
+
         # ---
         # calculate energy usage
         # energy used moving + energy used hovering
@@ -125,6 +167,8 @@ class SimpleUAVEnv(gym.Env):
         # ---
         # calculate reward = change in coverage score / change in total energy consumption
         reward = sum(new_cov_score - prev_cov_score) / sum(energy_usage)
+        penalty = 100 * reward
+        penalised_reward = reward - penalty * (outside_count + disconnected_count)
 
         # end episode if UAV runs out of battery
         if any(energy_usage > self.uav_bat_cap):
@@ -139,7 +183,7 @@ class SimpleUAVEnv(gym.Env):
 
         info = {}
 
-        return self.state, reward - 100 * outside_count * reward, done, info
+        return self.state, penalised_reward, done, info
 
     def reset(self):
         self.state = {
@@ -189,9 +233,10 @@ if __name__ == '__main__':
     #         obs = env.reset()
     #     env.render()
 
-    model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=10000)
-    model.save("./v6")
+    # model = PPO('MultiInputPolicy', env, verbose=1)
+    # model.learn(total_timesteps=10000)
+    # model.save("./v6")
+    model = PPO.load('./v6')
 
     obs = env.reset()
     locs = []
