@@ -5,20 +5,23 @@ from scipy.spatial import distance
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 from functools import reduce
+import random
 
 
 def conv_uav_locs(uav_locs):
     return np.array([uav_locs[x:x + 2] for x in range(0, len(uav_locs), 2)])
 
+
 def get_move(action):
+    dist = 0.2
     if action == 0:
-        return [0, 1]
+        return [0, 0.2]
     elif action == 1:
-        return [1, 0]
+        return [0.2, 0]
     elif action == 2:
-        return [0, -1]
+        return [0, -0.2]
     elif action == 3:
-        return [-1, 0]
+        return [-0.2, 0]
 
 
 def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
@@ -32,25 +35,23 @@ def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_rang
 
 def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
     coverage_states = list(map(get_coverage_state_from_uav,
-                                   uav_locs,
-                                   [user_locs] * len(uav_locs),
-                                   [cov_range] * len(uav_locs)))
+                               uav_locs,
+                               [user_locs] * len(uav_locs),
+                               [cov_range] * len(uav_locs)))
 
     return reduce(lambda acc, x: acc | x, coverage_states)
 
 
-# TODO: Work out better values for these
 # energy used hovering
 def energy_hover(t): return t / 10
 
 
 # energy used flying
-def energy_move(t): return t / 12.5
+def energy_move(t): return t / 9  # FIXME: Energy used moving should have a larger denominator.
 
 
 class SimpleUAVEnv(gym.Env):
     n_users = 100
-    n_uavs = 5
 
     # 1 unit = 100 m
 
@@ -63,7 +64,7 @@ class SimpleUAVEnv(gym.Env):
     uav_vel = 1 / 9  # units / s
 
     # battery capacity
-    uav_bat_cap = 63
+    uav_bat_cap = 180
 
     def energy_move_dist(self, d): return energy_move(d / self.uav_vel)
 
@@ -71,7 +72,11 @@ class SimpleUAVEnv(gym.Env):
     # Simulation settings
     time_per_epoch = 10  # seconds
 
-    def __init__(self):
+    sim_size = 10
+
+    def __init__(self, n_uavs: int = 5, seed=0):
+        self.n_uavs = n_uavs
+
         self.action_space = gym.spaces.MultiDiscrete(np.array([4] * self.n_uavs, dtype=np.int32))
 
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
@@ -81,7 +86,9 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(self.n_uavs,), dtype=np.float32)
         })
 
-        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[8, 3], [3, 8]], cluster_std=[0.5, 0.7],
+        np.random.seed(seed)
+        centers = np.random.randint(0, self.sim_size, [2, 2])
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=[0.5, 0.7],
                                        random_state=1)
 
         self.state = None
@@ -116,7 +123,7 @@ class SimpleUAVEnv(gym.Env):
 
         # ---
         # calculate the coverage score
-        cov_state = get_coverage_state(uav_locs, self.user_locs, self.cov_range)
+        cov_state = get_coverage_state(conv_uav_locs(new_locs), self.user_locs, self.cov_range)
         prev_cov_score = self.state['cov_score']
         new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
 
@@ -124,16 +131,16 @@ class SimpleUAVEnv(gym.Env):
         # calculate reward = change in coverage score / change in total energy consumption
         reward = sum(new_cov_score - prev_cov_score) / sum(energy_usage)
 
-        # end episode if UAV runs out of battery
-        if any(energy_usage > self.uav_bat_cap):
-            done = True
-
         # update state
         self.state = {
             'uav_locs': np.array(new_locs, dtype=np.float32),
             'cov_score': np.array(new_cov_score, dtype=np.float32),
             'energy_used': (self.state['energy_used'] + energy_usage).astype(np.float32)
         }
+
+        # end episode if UAV runs out of battery
+        if any(self.state['energy_used'] > self.uav_bat_cap):
+            done = True
 
         info = {}
 
@@ -146,6 +153,7 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
 
+        self.timestep = 0
         return self.state
 
     def render(self, mode="human"):
