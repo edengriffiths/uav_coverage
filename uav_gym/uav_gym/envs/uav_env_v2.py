@@ -93,6 +93,8 @@ class SimpleUAVEnv(gym.Env):
             'cov_score': np.array([0] * self.n_users, dtype=np.float32),
         }
 
+        self.timestep = 0
+
         return self.state
 
     def render(self, mode="human"):

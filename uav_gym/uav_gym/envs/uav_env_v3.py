@@ -121,6 +121,8 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
 
+        self.timestep = 0
+
         return self.state
 
     def render(self, mode="human"):

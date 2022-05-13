@@ -8,13 +8,13 @@ from sklearn.datasets import make_blobs
 
 def get_move(action):
     if action == 0:
-        return [0, 1]
+        return [0, 0.2]
     elif action == 1:
-        return [1, 0]
+        return [0.2, 0]
     elif action == 2:
-        return [0, -1]
+        return [0, -0.2]
     elif action == 3:
-        return [-1, 0]
+        return [-0.2, 0]
 
 
 def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
@@ -68,7 +68,7 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(1,), dtype=np.float32)
         })
 
-        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[8, 3], [3, 8]], cluster_std=[0.5, 0.7], random_state=1)
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[3, 1], [1, 3]], cluster_std=[0.5, 0.7], random_state=1)
 
         self.state = None
         self.timestep = 0
@@ -124,6 +124,8 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
 
+        self.timestep = 0
+
         return self.state
 
     def render(self, mode="human"):
@@ -174,4 +176,4 @@ if __name__ == '__main__':
         locs.append(list(env.render()))
 
     print(env.user_locs)
-    # print(locs)
+    print(locs)

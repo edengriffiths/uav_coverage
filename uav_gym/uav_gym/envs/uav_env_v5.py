@@ -1,57 +1,14 @@
-import copy
 import gym
+from gym.utils import seeding
 import numpy as np
-from scipy.spatial import distance
-import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
-from functools import reduce
-import random
+from scipy.spatial import distance
+import uav_gym.uav_gym.utils as gym_utils
+import matplotlib.pyplot as plt
 
 
-def conv_uav_locs(uav_locs):
-    return np.array([uav_locs[x:x + 2] for x in range(0, len(uav_locs), 2)])
-
-
-def get_move(action):
-    dist = 0.2
-    if action == 0:
-        return [0, 0.2]
-    elif action == 1:
-        return [0.2, 0]
-    elif action == 2:
-        return [0, -0.2]
-    elif action == 3:
-        return [-0.2, 0]
-
-
-def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
-    return x_l_bound <= loc[0] <= x_u_bound and y_l_bound <= loc[1] <= y_u_bound
-
-
-def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: int):
-    dist_to_users = distance.cdist([uav_loc], user_locs, 'euclidean').flatten()
-    return dist_to_users <= cov_range
-
-
-def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
-    coverage_states = list(map(get_coverage_state_from_uav,
-                               uav_locs,
-                               [user_locs] * len(uav_locs),
-                               [cov_range] * len(uav_locs)))
-
-    return reduce(lambda acc, x: acc | x, coverage_states)
-
-
-# energy used hovering
-def energy_hover(t): return t / 10
-
-
-# energy used flying
-def energy_move(t): return t / 9  # FIXME: Energy used moving should have a larger denominator.
-
-
-class SimpleUAVEnv(gym.Env):
-    n_users = 100
+class UAVCoverage(gym.Env):
+    n_users = 1000
 
     # 1 unit = 100 m
 
@@ -66,15 +23,18 @@ class SimpleUAVEnv(gym.Env):
     # battery capacity
     uav_bat_cap = 180
 
-    def energy_move_dist(self, d): return energy_move(d / self.uav_vel)
-
     # ----
     # Simulation settings
-    time_per_epoch = 10  # seconds
+    time_per_epoch = 1  # seconds
 
     sim_size = 10
 
-    def __init__(self, n_uavs: int = 5, seed=0):
+    def __init__(self, n_uavs: int = 5):
+        self.seed()
+
+        self.user_centres = []
+        self.user_locs = []
+        # TODO: Random number of UAVs?
         self.n_uavs = n_uavs
 
         self.action_space = gym.spaces.MultiDiscrete(np.array([4] * self.n_uavs, dtype=np.int32))
@@ -86,50 +46,73 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(self.n_uavs,), dtype=np.float32)
         })
 
-        np.random.seed(seed)
-        centers = np.random.randint(0, self.sim_size, [2, 2])
-        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=[0.5, 0.7],
-                                       random_state=1)
-
         self.state = None
         self.timestep = 0
 
-        self.reset()
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
+
+    def reset(self, seed=0):
+        self.state = {
+            'uav_locs': np.array([0] * 2 * self.n_uavs),
+            'cov_score': np.array([0] * self.n_users, dtype=np.float32),
+            'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
+        }
+
+        # self.user_locs = np.array(self.np_random.uniform(0, self.sim_size, size=[self.n_users, 2]))
+        self.user_centres = self.np_random.randint(0, self.sim_size, size=[1, 2])
+        # # TODO: Random cluster_stds?
+        # self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=self.user_centres, cluster_std=[0.5, 0.7],
+        #                                random_state=1)
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=self.user_centres, cluster_std=[2.5],
+                                       random_state=1)
+
+        self.timestep = 0
+
+        return self.state
 
     def step(self, action: np.ndarray):
         done = False
         self.timestep += 1
 
         # convert the list of uav locs of the form [x1, y1, x2, y2] to [[x1, y1], [x2, y2]]
-        uav_locs = conv_uav_locs(self.state['uav_locs'])
+        uav_locs = gym_utils.conv_uav_locs(self.state['uav_locs'])
 
+        distances = np.array([0.1] * len(action))
         # ---
         # move UAVs
-        moves = np.array(list(map(get_move, action)))
+        moves = np.array(list(map(gym_utils.get_move, action, distances)))
 
         # maybe_locs is a list of the new positions regardless of whether they are out of bounds
         maybe_locs = uav_locs + moves
 
-        new_locs = np.array([maybe_locs[i] if inbounds(maybe_locs[i]) else uav_locs[i] for i in range(len(moves))],
+        new_locs = np.array([maybe_locs[i] if gym_utils.inbounds(maybe_locs[i]) else uav_locs[i] for i in range(len(moves))],
                             dtype=np.float32).flatten()
 
         # ---
         # calculate energy usage
         # energy used moving + energy used hovering
-        dist = np.array([1] * self.n_uavs)  # each movement is 1 block so dist = 1
-        time_moving = dist / self.uav_vel
+        time_moving = distances / self.uav_vel
         time_hovering = self.time_per_epoch - time_moving
-        energy_usage = np.array(list(map(energy_move, time_moving))) + np.array(list(map(energy_hover, time_hovering)))
+        energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(list(map(gym_utils.energy_hover, time_hovering)))
 
         # ---
         # calculate the coverage score
-        cov_state = get_coverage_state(conv_uav_locs(new_locs), self.user_locs, self.cov_range)
+        cov_state = gym_utils.get_coverage_state(gym_utils.conv_uav_locs(new_locs), self.user_locs, self.cov_range)
         prev_cov_score = self.state['cov_score']
         new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
 
+        fair_ind = 0 if sum(new_cov_score) == 0 else sum(new_cov_score)**2 / (self.n_users * sum(new_cov_score**2))
+        # FIXME: reward function and clusters
+        # ---
+        # calculate distance to user cluster centres
+        # dist_to_clusters = distance.cdist(gym_utils.conv_uav_locs(new_locs), self.user_centres, 'euclidean')
+
         # ---
         # calculate reward = change in coverage score / change in total energy consumption
-        reward = sum(new_cov_score - prev_cov_score) / sum(energy_usage)
+        # reward = -0.005 * sum(dist_to_clusters.min(axis=1)) + sum(new_cov_score - prev_cov_score) / sum(energy_usage)
+        reward = fair_ind * sum(new_cov_score - prev_cov_score) / sum(energy_usage)
 
         # update state
         self.state = {
@@ -146,38 +129,29 @@ class SimpleUAVEnv(gym.Env):
 
         return self.state, reward, done, info
 
-    def reset(self):
-        self.state = {
-            'uav_locs': np.array([0] * 2 * self.n_uavs),
-            'cov_score': np.array([0] * self.n_users, dtype=np.float32),
-            'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
-        }
-
-        self.timestep = 0
-        return self.state
-
     def render(self, mode="human"):
-        # positions = self.state['uav_locs']
-        # x = [positions[i] for i in range(0, len(positions), 2)]
-        # y = [positions[i] for i in range(1, len(positions), 2)]
-        # # Render the environment to the screen
-        # plt.xlim([0, 10])
-        # plt.ylim([0, 10])
-        #
-        # plt.scatter(x, y, s=6000, color='blue', alpha=0.3)
-        # plt.scatter(x, y, color='red')
-        #
-        # plt.scatter(*zip(*self.user_locs), color='grey', s=2)
-        # plt.xlabel("X cordinate")
-        # plt.ylabel("Y cordinate")
-        # plt.pause(0.001)
-        # plt.show()
+        positions = self.state['uav_locs']
+        # Render the environment to the screen
+        plt.xlim([0, 10])
+        plt.ylim([0, 10])
 
-        return list(map(list, zip(*conv_uav_locs(self.state['uav_locs'].tolist()))))
+        plt.scatter(positions[0], positions[1], s=6000, color='blue', alpha=0.3)
+        plt.scatter(positions[0], positions[1], color='red')
+
+        plt.scatter(*zip(*self.user_locs), color='grey', s=2)
+        plt.xlabel("X cordinate")
+        plt.ylabel("Y cordinate")
+        plt.pause(0.001)
+        plt.show()
+        plt.clf()
+
+        # print(self.user_locs.tolist())
+        # print(gym_utils.conv_uav_locs(self.state['uav_locs']).tolist())
+        # return list(map(list, zip(*gym_utils.conv_uav_locs(self.state['uav_locs'].tolist()))))
 
 
 if __name__ == '__main__':
-    env = SimpleUAVEnv()
+    env = UAVCoverage()
 
     from stable_baselines3.common.vec_env import DummyVecEnv
     from stable_baselines3 import PPO
@@ -196,14 +170,12 @@ if __name__ == '__main__':
     #     env.render()
 
     model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=10000)
+    model.learn(total_timesteps=1000)
 
     obs = env.reset()
     locs = []
     for _ in range(200):
         action, _states = model.predict(obs)
         obs, rewards, done, info = env.step(action)
-        locs.append(env.render())
+        env.render()
 
-    print(env.user_locs)
-    print(locs)

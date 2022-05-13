@@ -7,19 +7,25 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 from functools import reduce
 
+from typing import List
+
 
 def conv_uav_locs(uav_locs):
     return np.array([uav_locs[x:x + 2] for x in range(0, len(uav_locs), 2)])
 
+
 def get_move(action):
+    dist = 0.2
     if action == 0:
-        return [0, 1]
+        return [0, 0]
     elif action == 1:
-        return [1, 0]
+        return [0, dist]
     elif action == 2:
-        return [0, -1]
+        return [dist, 0]
     elif action == 3:
-        return [-1, 0]
+        return [0, -dist]
+    elif action == 4:
+        return [-dist, 0]
 
 
 def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
@@ -36,37 +42,41 @@ def make_graph_from_locs(uav_locs, home_loc, comm_range):
     # TODO: Can the home base have a larger range? Can it get data from UAV?
     all_locs = [home_loc] + uav_locs
 
-    # convert to matrix of distances between all UAVs
-    # convert to boolean matrix where True if distance < comm_range
-    M = distance.cdist(all_locs, all_locs) < comm_range
+    nodes = dict(enumerate(all_locs))
+    g = nx.Graph()
 
-    # make graph and remove self loops
-    G = nx.from_numpy_matrix(M)
-    G.remove_edges_from(nx.selfloop_edges(G))
+    for n, pos in nodes.items():
+        g.add_node(n, pos=pos)
 
-    return G
+    edges = nx.generators.geometric.geometric_edges(g, radius=comm_range, p=2)
+    g.add_edges_from(edges)
+
+    return g
 
 
-def get_disconnected_count(G):
+def get_disconnected_count(g):
     """
     :param G: networkx graph
     :return: the number of nodes that are unreachable from home.
     """
     home = 0
 
-    # Get the subgraph of all the nodes connected to home
-    s = G.subgraph(nx.shortest_path(G, home))
+    # the total number of nodes in g (-1 for home) - the number of nodes reachable from home.
+    return len(g) - len(nx.descendants(g, home)) - 1
 
-    # Return the number of nodes not connected to home
-    return G.number_of_nodes() - s.number_of_nodes()
+    # # Get the subgraph of all the nodes connected to home
+    # s = g.subgraph(nx.shortest_path(g, home))
+    #
+    # # Return the number of nodes not connected to home
+    # return g.number_of_nodes() - s.number_of_nodes()
 
 
-def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: int):
+def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: float):
     dist_to_users = distance.cdist([uav_loc], user_locs, 'euclidean').flatten()
     return dist_to_users <= cov_range
 
 
-def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
+def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: float):
     coverage_states = list(map(get_coverage_state_from_uav,
                                    uav_locs,
                                    [user_locs] * len(uav_locs),
@@ -85,24 +95,16 @@ def energy_move(t): return t / 12.5
 
 
 class SimpleUAVEnv(gym.Env):
-    n_users = 100
-    n_uavs = 5
-
     # 1 unit = 100 m
 
     # ----
     # UAV SETTINGS
-    # radius of the coverage range on the ground in units
-    cov_range = 2  # units
-
-    # radius of the communication range (distance UAVs can be from each other and still communicate) in units
-    comm_range = 5  # units
 
     # uav velocity (assumes constant velocity)
     uav_vel = 1 / 9  # units / s
 
     # battery capacity
-    uav_bat_cap = 63
+    uav_bat_cap = 180
 
     def energy_move_dist(self, d): return energy_move(d / self.uav_vel)
 
@@ -110,8 +112,19 @@ class SimpleUAVEnv(gym.Env):
     # Simulation settings
     time_per_epoch = 10  # seconds
 
-    def __init__(self):
-        self.action_space = gym.spaces.MultiDiscrete(np.array([4] * self.n_uavs, dtype=np.int32))
+    def __init__(self, n_uavs: int = 5, n_users: int = 100, cov_range: float = 2.0, comm_range: float = 5.0):
+        """
+        :param n_uavs: number of uavs
+        :param cov_range: radius of the coverage range on the ground (in units)
+        :param comm_range: distance UAVs can be from each other and still communicate (in units)
+        :param n_users: number of users
+        """
+        self.n_uavs = n_uavs
+        self.cov_range = cov_range
+        self.comm_range = comm_range
+        self.n_users = n_users
+
+        self.action_space = gym.spaces.MultiDiscrete(np.array([5] * self.n_uavs, dtype=np.int32))
 
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
         self.observation_space = gym.spaces.Dict({
@@ -120,7 +133,7 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(self.n_uavs,), dtype=np.float32)
         })
 
-        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[8, 3], [3, 8]], cluster_std=[0.5, 0.7],
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=[[1, 3], [3, 1]], cluster_std=[0.5, 0.7],
                                        random_state=1)
 
         self.home_loc = np.array([0, 0])
@@ -160,7 +173,7 @@ class SimpleUAVEnv(gym.Env):
 
         # ---
         # calculate the coverage score
-        cov_state = get_coverage_state(uav_locs, self.user_locs, self.cov_range)
+        cov_state = get_coverage_state(conv_uav_locs(new_locs), self.user_locs, self.cov_range)
         prev_cov_score = self.state['cov_score']
         new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
 
@@ -192,34 +205,20 @@ class SimpleUAVEnv(gym.Env):
             'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
 
+        self.timestep = 0
+
         return self.state
 
     def render(self, mode="human"):
-        # positions = self.state['uav_locs']
-        # x = [positions[i] for i in range(0, len(positions), 2)]
-        # y = [positions[i] for i in range(1, len(positions), 2)]
-        # # Render the environment to the screen
-        # plt.xlim([0, 10])
-        # plt.ylim([0, 10])
-        #
-        # plt.scatter(x, y, s=6000, color='blue', alpha=0.3)
-        # plt.scatter(x, y, color='red')
-        #
-        # plt.scatter(*zip(*self.user_locs), color='grey', s=2)
-        # plt.xlabel("X cordinate")
-        # plt.ylabel("Y cordinate")
-        # plt.pause(0.001)
-        # plt.show()
-
-        return list(map(list, zip(*conv_uav_locs(self.state['uav_locs'].tolist()))))
+        print(self.state['uav_locs'])
+        return self.state
 
 
 if __name__ == '__main__':
-    env = SimpleUAVEnv()
-
-    from stable_baselines3.common.vec_env import DummyVecEnv
-    from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
+    from stable_baselines3 import PPO
+
+    env = SimpleUAVEnv(5)
 
     # check_env(env)
     #
@@ -233,18 +232,17 @@ if __name__ == '__main__':
     #         obs = env.reset()
     #     env.render()
 
-    # model = PPO('MultiInputPolicy', env, verbose=1)
-    # model.learn(total_timesteps=10000)
-    # model.save("./v6")
-    model = PPO.load('./v6')
+    model = PPO('MultiInputPolicy', env, verbose=1)
+    model.learn(total_timesteps=1000)
+
 
     obs = env.reset()
-    locs = []
-    for _ in range(200):
+    positions = []
+    for _ in range(100):
         action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-        print(rewards)
-        locs.append(env.render())
+        obs, reward, done, info = env.step(action)
+        locs = obs['uav_locs']
+        positions.append(np.array([locs[::2], locs[1::2]]).tolist())
 
-    print(env.user_locs)
-    print(locs)
+    print(env.user_locs.tolist())
+    print(positions)
