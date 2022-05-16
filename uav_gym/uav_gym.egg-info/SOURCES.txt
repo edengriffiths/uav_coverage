@@ -1,7 +1,0 @@
-README.md
-setup.py
-uav_gym.egg-info/PKG-INFO
-uav_gym.egg-info/SOURCES.txt
-uav_gym.egg-info/dependency_links.txt
-uav_gym.egg-info/requires.txt
-uav_gym.egg-info/top_level.txt
