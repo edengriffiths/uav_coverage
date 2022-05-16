@@ -1,10 +1,12 @@
 import time
-
-import matplotlib.patches
 import networkx as nx
 import numpy as np
+
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from matplotlib.collections import LineCollection
+import matplotlib.patches
+
 from typing import Tuple
 
 from uav_gym.uav_gym.envs.uav_env_v6 import make_graph_from_locs
@@ -15,14 +17,14 @@ class AnimatedScatter(object):
         self.uav_locs = uav_locs
         self.user_locs = user_locs
 
-        self.time_per_epoch = 10
+        self.time_per_epoch = 1
 
         self.fig, self.ax = plt.subplots()
 
         self.ax.set_xlim(0, 10)
         self.ax.set_ylim(0, 10)
 
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1000, init_func=self.setup,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=5, init_func=self.setup,
                                            frames=len(self.uav_locs), repeat=False)
 
     def setup(self):
@@ -78,19 +80,20 @@ def get_locs_of_connected(g: nx.Graph):
 
 def get_connections(x_uavs, y_uavs):
     # TODO: Read these values from somewhere
-    g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=2)
+    g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=5)
     return get_locs_of_connected(g)
 
+
+def render(user_locs, uav_locs):
+    AnimatedScatter(user_locs, uav_locs)
+    plt.show()
 
 if __name__ == '__main__':
     from user_locs import user_locs
     from uav_locs import uav_locs
 
-    from matplotlib.collections import LineCollection
-
     user_locs = np.array(list(zip(*user_locs)))
 
     list_uav_locs = np.array(uav_locs)
-    a = AnimatedScatter(user_locs, list_uav_locs)
-    plt.show()
+    render(user_locs, list_uav_locs)
 
