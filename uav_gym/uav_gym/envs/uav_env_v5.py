@@ -2,7 +2,7 @@ import gym
 from gym.utils import seeding
 import numpy as np
 from sklearn.datasets import make_blobs
-import utils as gym_utils
+import uav_gym.utils as gym_utils
 import matplotlib.pyplot as plt
 
 
