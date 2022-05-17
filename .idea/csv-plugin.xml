@@ -1,0 +1,1276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CsvFileAttributes">
+    <option name="attributeMap">
+      <map>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-AsteroidsNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-BeamRiderNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-BipedalWalkerHardcore-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-BreakoutNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-EnduroNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-LunarLander-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-PongNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-QbertNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-RoadRunnerNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-SeaquestNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-SpaceInvadersNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/a2c-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ars-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ddpg-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-AsteroidsNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-BeamRiderNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-BreakoutNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-EnduroNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-LunarLander-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-PongNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-QbertNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-RoadRunnerNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-SeaquestNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/dqn-SpaceInvadersNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/her-FetchPickAndPlace-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/her-FetchPush-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/her-FetchReach-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/her-FetchSlide-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/her-parking-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-AsteroidsNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-BeamRiderNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-BipedalWalkerHardcore-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-BreakoutNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-EnduroNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-LunarLander-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-PongNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-QbertNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-RoadRunnerNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-SeaquestNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-SpaceInvadersNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/ppo-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-AsteroidsNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-BeamRiderNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-BreakoutNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-EnduroNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-LunarLander-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-PongNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-QbertNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-RoadRunnerNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-SeaquestNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/qrdqn-SpaceInvadersNoFrameskip-v4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-BipedalWalkerHardcore-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Humanoid-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/sac-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-BipedalWalkerHardcore-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Humanoid-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/td3-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-BipedalWalkerHardcore-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-FetchPickAndPlace-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-FetchPush-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-FetchReach-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-FetchSlide-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Humanoid-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-PandaPickAndPlace-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-PandaPush-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-PandaReach-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-PandaSlide-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-PandaStack-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/tqc-parking-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Acrobot-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Ant-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-AntBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-BipedalWalker-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-CartPole-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-HalfCheetah-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-HalfCheetahBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Hopper-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-HopperBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-LunarLander-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-LunarLanderContinuous-v2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-MountainCar-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-MountainCarContinuous-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Pendulum-v1/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-ReacherBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Swimmer-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Walker2DBulletEnv-v0/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/benchmark/trpo-Walker2d-v3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

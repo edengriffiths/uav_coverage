@@ -2,8 +2,7 @@ import gym
 from gym.utils import seeding
 import numpy as np
 from sklearn.datasets import make_blobs
-from scipy.spatial import distance
-import uav_gym.uav_gym.utils as gym_utils
+import utils as gym_utils
 import matplotlib.pyplot as plt
 
 
@@ -153,9 +152,7 @@ class UAVCoverage(gym.Env):
 if __name__ == '__main__':
     env = UAVCoverage()
 
-    from stable_baselines3.common.vec_env import DummyVecEnv
     from stable_baselines3 import PPO
-    from stable_baselines3.common.env_checker import check_env
 
     # check_env(env)
     #
