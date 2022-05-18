@@ -58,12 +58,11 @@ class UAVCoverage(gym.Env):
     def reset(self, seed=0):
         self.state = np.array([0] * 2 * self.n_uavs)
 
-        # self.user_locs = np.array(self.np_random.uniform(0, self.sim_size, size=[self.n_users, 2]))
-        self.user_centres = self.np_random.randint(0, self.sim_size, size=[1, 2])
+        self.user_centres = self.np_random.randint(0, self.sim_size, size=[2, 2])
         # # TODO: Random cluster_stds?
         # self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=self.user_centres, cluster_std=[0.5, 0.7],
         #                                random_state=1)
-        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=self.user_centres, cluster_std=[2.5],
+        self.user_locs, _ = make_blobs(n_samples=self.n_users, centers=self.user_centres, cluster_std=[1, 1],
                                        random_state=1)
 
         self.timestep = 0
@@ -97,14 +96,9 @@ class UAVCoverage(gym.Env):
         time_hovering = self.time_per_epoch - time_moving
         energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(list(map(gym_utils.energy_hover, time_hovering)))
 
-        # ---
-        # calculate the coverage score
-        cov_state = gym_utils.get_coverage_state(gym_utils.conv_uav_locs(new_locs), self.user_locs, self.cov_range)
-
         # update total energy used.
         self.energy_used += energy_usage
 
-        # fair_ind = 0 if sum(new_cov_score) == 0 else sum(new_cov_score)**2 / (self.n_users * sum(new_cov_score**2))
         # FIXME: reward function and clusters
         # ---
         # calculate distance to user cluster centres
@@ -113,7 +107,15 @@ class UAVCoverage(gym.Env):
         # ---
         # calculate reward = change in coverage score / change in total energy consumption
         # reward = -0.005 * sum(dist_to_clusters.min(axis=1)) + sum(new_cov_score - prev_cov_score) / sum(energy_usage)
-        reward = float(sum(cov_state))
+        # reward = float(sum(cov_state) / self.n_users)
+
+        total_score = sum(gym_utils.get_scores(
+            gym_utils.conv_uav_locs(new_locs),
+            self.user_locs,
+            self.cov_range,
+            p_factor=0.5
+        ))
+        reward = total_score / self.n_users
 
         # update state
         self.state = np.array(new_locs, dtype=np.float32)
@@ -127,7 +129,7 @@ class UAVCoverage(gym.Env):
         return self.state, reward, done, info
 
     def render(self, mode="human"):
-        positions = self.state['uav_locs']
+        positions = [self.state[::2], self.state[1::2]]
         # Render the environment to the screen
         plt.xlim([0, 10])
         plt.ylim([0, 10])
@@ -154,16 +156,17 @@ if __name__ == '__main__':
     from stable_baselines3.common.env_checker import check_env
 
     check_env(env)
-    #
-    # obs = env.reset()
-    # n_steps = 5
-    # for _ in range(n_steps):
-    #     # Random action
-    #     action = env.action_space.sample()
-    #     obs, reward, done, info = env.step(action)
-    #     if done:
-    #         obs = env.reset()
-    #     env.render()
+
+    obs = env.reset()
+    n_steps = 100
+    for _ in range(n_steps):
+        # Random action
+        action = env.action_space.sample()
+        obs, reward, done, info = env.step(action)
+        print(reward)
+        if done:
+            obs = env.reset()
+        env.render()
 
     # model = PPO('MultiInputPolicy', env, verbose=1)
     # model.learn(total_timesteps=1000)
