@@ -18,6 +18,7 @@ class UAVCoverage(gym.Env):
 
     # uav velocity (assumes constant velocity)
     uav_vel = 1 / 9  # units / s
+    dist = 0.1
 
     # battery capacity
     uav_bat_cap = 180
@@ -36,13 +37,15 @@ class UAVCoverage(gym.Env):
         # TODO: Random number of UAVs?
         self.n_uavs = n_uavs
 
-        self.action_space = gym.spaces.MultiDiscrete(np.array([4] * self.n_uavs, dtype=np.int32))
+        self.action_space = gym.spaces.MultiDiscrete(
+            np.array([4] * self.n_uavs, dtype=np.int32)
+        )
 
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
-        self.observation_space = gym.spaces.Dict({
-            'uav_locs': gym.spaces.MultiDiscrete(np.array([11] * 2 * self.n_uavs, dtype=np.int32)),
-            'cov_score': gym.spaces.Box(low=0, high=1, shape=(self.n_users,), dtype=np.float32)
-        })
+        self.observation_space = gym.spaces.MultiDiscrete(
+            np.array([self.sim_size * 1 / self.dist + 1] * 2 * self.n_uavs,
+                     dtype=np.int32)
+        )
 
         self.energy_used = None
         self.state = None
@@ -53,10 +56,7 @@ class UAVCoverage(gym.Env):
         return [seed]
 
     def reset(self, seed=0):
-        self.state = {
-            'uav_locs': np.array([0] * 2 * self.n_uavs),
-            'cov_score': np.array([0] * self.n_users, dtype=np.float32),
-        }
+        self.state = np.array([0] * 2 * self.n_uavs)
 
         # self.user_locs = np.array(self.np_random.uniform(0, self.sim_size, size=[self.n_users, 2]))
         self.user_centres = self.np_random.randint(0, self.sim_size, size=[1, 2])
@@ -77,9 +77,9 @@ class UAVCoverage(gym.Env):
         self.timestep += 1
 
         # convert the list of uav locs of the form [x1, y1, x2, y2] to [[x1, y1], [x2, y2]]
-        uav_locs = gym_utils.conv_uav_locs(self.state['uav_locs'])
+        uav_locs = gym_utils.conv_uav_locs(self.state)
 
-        distances = np.array([0.1] * len(action))
+        distances = np.array([self.dist] * len(action))
         # ---
         # move UAVs
         moves = np.array(list(map(gym_utils.get_move, action, distances)))
@@ -100,8 +100,6 @@ class UAVCoverage(gym.Env):
         # ---
         # calculate the coverage score
         cov_state = gym_utils.get_coverage_state(gym_utils.conv_uav_locs(new_locs), self.user_locs, self.cov_range)
-        prev_cov_score = self.state['cov_score']
-        new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
 
         # update total energy used.
         self.energy_used += energy_usage
@@ -115,13 +113,10 @@ class UAVCoverage(gym.Env):
         # ---
         # calculate reward = change in coverage score / change in total energy consumption
         # reward = -0.005 * sum(dist_to_clusters.min(axis=1)) + sum(new_cov_score - prev_cov_score) / sum(energy_usage)
-        reward = sum(new_cov_score - prev_cov_score)
+        reward = float(sum(cov_state))
 
         # update state
-        self.state = {
-            'uav_locs': np.array(new_locs, dtype=np.float32),
-            'cov_score': np.array(new_cov_score, dtype=np.float32),
-        }
+        self.state = np.array(new_locs, dtype=np.float32)
 
         # end episode if UAV runs out of battery
         if any(self.energy_used > self.uav_bat_cap):
@@ -156,8 +151,9 @@ if __name__ == '__main__':
     env = UAVCoverage()
 
     from stable_baselines3 import PPO
+    from stable_baselines3.common.env_checker import check_env
 
-    # check_env(env)
+    check_env(env)
     #
     # obs = env.reset()
     # n_steps = 5
@@ -169,13 +165,13 @@ if __name__ == '__main__':
     #         obs = env.reset()
     #     env.render()
 
-    model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=1000)
-
-    obs = env.reset()
-    locs = []
-    for _ in range(200):
-        action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-        env.render()
+    # model = PPO('MultiInputPolicy', env, verbose=1)
+    # model.learn(total_timesteps=1000)
+    #
+    # obs = env.reset()
+    # locs = []
+    # for _ in range(200):
+    #     action, _states = model.predict(obs)
+    #     obs, rewards, done, info = env.step(action)
+    #     env.render()
 
