@@ -41,10 +41,10 @@ class UAVCoverage(gym.Env):
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
         self.observation_space = gym.spaces.Dict({
             'uav_locs': gym.spaces.MultiDiscrete(np.array([11] * 2 * self.n_uavs, dtype=np.int32)),
-            'cov_score': gym.spaces.Box(low=0, high=1, shape=(self.n_users,), dtype=np.float32),
-            'energy_used': gym.spaces.Box(low=0, high=self.uav_bat_cap, shape=(self.n_uavs,), dtype=np.float32)
+            'cov_score': gym.spaces.Box(low=0, high=1, shape=(self.n_users,), dtype=np.float32)
         })
 
+        self.energy_used = None
         self.state = None
         self.timestep = 0
 
@@ -56,7 +56,6 @@ class UAVCoverage(gym.Env):
         self.state = {
             'uav_locs': np.array([0] * 2 * self.n_uavs),
             'cov_score': np.array([0] * self.n_users, dtype=np.float32),
-            'energy_used': np.array([0] * self.n_uavs, dtype=np.float32),
         }
 
         # self.user_locs = np.array(self.np_random.uniform(0, self.sim_size, size=[self.n_users, 2]))
@@ -68,6 +67,8 @@ class UAVCoverage(gym.Env):
                                        random_state=1)
 
         self.timestep = 0
+
+        self.energy_used = np.array([0] * self.n_uavs, dtype=np.float32)
 
         return self.state
 
@@ -102,7 +103,10 @@ class UAVCoverage(gym.Env):
         prev_cov_score = self.state['cov_score']
         new_cov_score = (prev_cov_score * (self.timestep - 1) + cov_state) / self.timestep
 
-        fair_ind = 0 if sum(new_cov_score) == 0 else sum(new_cov_score)**2 / (self.n_users * sum(new_cov_score**2))
+        # update total energy used.
+        self.energy_used += energy_usage
+
+        # fair_ind = 0 if sum(new_cov_score) == 0 else sum(new_cov_score)**2 / (self.n_users * sum(new_cov_score**2))
         # FIXME: reward function and clusters
         # ---
         # calculate distance to user cluster centres
@@ -111,17 +115,16 @@ class UAVCoverage(gym.Env):
         # ---
         # calculate reward = change in coverage score / change in total energy consumption
         # reward = -0.005 * sum(dist_to_clusters.min(axis=1)) + sum(new_cov_score - prev_cov_score) / sum(energy_usage)
-        reward = fair_ind * sum(new_cov_score - prev_cov_score) / sum(energy_usage)
+        reward = sum(new_cov_score - prev_cov_score)
 
         # update state
         self.state = {
             'uav_locs': np.array(new_locs, dtype=np.float32),
             'cov_score': np.array(new_cov_score, dtype=np.float32),
-            'energy_used': (self.state['energy_used'] + energy_usage).astype(np.float32)
         }
 
         # end episode if UAV runs out of battery
-        if any(self.state['energy_used'] > self.uav_bat_cap):
+        if any(self.energy_used > self.uav_bat_cap):
             done = True
 
         info = {}
