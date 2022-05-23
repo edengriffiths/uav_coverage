@@ -1,14 +1,15 @@
-from uav_gym.uav_gym.envs.uav_env_v5 import UAVCoverage as Env_v5
+import gym
+import uav_gym
 from stable_baselines3 import PPO
 import numpy as np
 import matplotlib.pyplot as plt
 
-model_dir = models_dir = "models/PPO"
+model_dir = models_dir = "rl-baselines3-zoo/logs/ppo/uav-v0_10/"
 
-env = Env_v5()
+env = gym.make('uav-v0')
 env.reset()
 
-model = PPO.load(f"{models_dir}/70000.zip", env=env)
+model = PPO.load(f"{models_dir}/best_model.zip", env=env)
 
 locs = []
 
@@ -17,8 +18,9 @@ done = False
 while not done:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
-    l = obs['uav_locs'].tolist()
+    l = obs.tolist()
     l = [l[x:x + 2] for x in range(0, len(l), 2)]
+    print(l)
     locs.append(l)
 
 

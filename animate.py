@@ -9,7 +9,7 @@ import matplotlib.patches
 
 from typing import Tuple
 
-from uav_gym.uav_gym.envs.uav_env_v6 import make_graph_from_locs
+from uav_gym.utils import make_graph_from_locs
 
 
 class AnimatedScatter(object):

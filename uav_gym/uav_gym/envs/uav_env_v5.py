@@ -86,35 +86,33 @@ class UAVCoverage(gym.Env):
         # maybe_locs is a list of the new positions regardless of whether they are out of bounds
         maybe_locs = uav_locs + moves
 
-        new_locs = np.array([maybe_locs[i] if gym_utils.inbounds(maybe_locs[i]) else uav_locs[i] for i in range(len(moves))],
-                            dtype=np.float32).flatten()
+        new_locs = np.array(
+            [maybe_locs[i] if gym_utils.inbounds(maybe_locs[i]) else uav_locs[i] for i in range(len(moves))],
+            dtype=np.float32).flatten()
 
         # ---
         # calculate energy usage
         # energy used moving + energy used hovering
         time_moving = distances / self.uav_vel
         time_hovering = self.time_per_epoch - time_moving
-        energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(list(map(gym_utils.energy_hover, time_hovering)))
+        energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(
+            list(map(gym_utils.energy_hover, time_hovering)))
 
         # update total energy used.
         self.energy_used += energy_usage
 
-        # FIXME: reward function and clusters
         # ---
-        # calculate distance to user cluster centres
-        # dist_to_clusters = distance.cdist(gym_utils.conv_uav_locs(new_locs), self.user_centres, 'euclidean')
+        # calculate reward = sum of all scores
 
-        # ---
-        # calculate reward = change in coverage score / change in total energy consumption
-        # reward = -0.005 * sum(dist_to_clusters.min(axis=1)) + sum(new_cov_score - prev_cov_score) / sum(energy_usage)
-        # reward = float(sum(cov_state) / self.n_users)
+        total_score = sum(
+            gym_utils.get_scores(
+                gym_utils.conv_uav_locs(new_locs),
+                self.user_locs,
+                self.cov_range,
+                p_factor=0.8
+            )
+        )
 
-        total_score = sum(gym_utils.get_scores(
-            gym_utils.conv_uav_locs(new_locs),
-            self.user_locs,
-            self.cov_range,
-            p_factor=0.5
-        ))
         reward = total_score / self.n_users
 
         # update state
@@ -177,4 +175,3 @@ if __name__ == '__main__':
     #     action, _states = model.predict(obs)
     #     obs, rewards, done, info = env.step(action)
     #     env.render()
-
