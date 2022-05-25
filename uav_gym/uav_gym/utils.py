@@ -2,11 +2,27 @@
 import numpy as np
 from functools import reduce
 from scipy.spatial import distance
+import numpy as np
 import networkx as nx
 
 
-def conv_uav_locs(uav_locs):
-    return np.array([uav_locs[x:x + 2] for x in range(0, len(uav_locs), 2)])
+def conv_locs(locs):
+    return np.array([locs[x:x + 2] for x in range(0, len(locs), 2)])
+
+
+def constrain_user_loc(user_loc, center, std, rng):
+    x_u, y_u = user_loc
+    x_c, y_c = center
+    if x_c - 3 * std > x_u > x_c + 3 * std:
+        x_u = rng.random.uniform(x_c - 3 * std, x_c + 3 * std)
+
+    if y_c - 3 * std > y_u > y_c + 3 * std:
+        y_u = rng.random.uniform(y_c - 3 * std, y_c + 3 * std)
+
+    return x_u, y_u
+
+
+
 
 
 def get_move(action, dist):
