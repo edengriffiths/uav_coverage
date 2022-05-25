@@ -13,18 +13,19 @@ from uav_gym.utils import make_graph_from_locs
 
 
 class AnimatedScatter(object):
-    def __init__(self, user_locs, uav_locs):
+    def __init__(self, user_locs, uav_locs, sim_size):
         self.uav_locs = uav_locs
         self.user_locs = user_locs
+        self.sim_size = sim_size
 
         self.time_per_epoch = 1
 
         self.fig, self.ax = plt.subplots()
 
-        self.ax.set_xlim(0, 10)
-        self.ax.set_ylim(0, 10)
+        self.ax.set_xlim(0, self.sim_size)
+        self.ax.set_ylim(0, self.sim_size)
 
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=5, init_func=self.setup,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, init_func=self.setup,
                                            frames=len(self.uav_locs), repeat=False)
 
     def setup(self):
@@ -34,7 +35,7 @@ class AnimatedScatter(object):
         rect = matplotlib.patches.Rectangle((0, 0), 0.5, 0.2)
         self.ax.add_patch(rect)
 
-        self.title = self.ax.text(6.5, 10.5, "Time Elapsed: 0")
+        self.title = self.ax.text(0.65 * self.sim_size, 1.05 * self.sim_size, "Time Elapsed: 0")
 
         self.users = self.ax.scatter(self.user_locs[0], self.user_locs[1], s=20, c='gray')
         self.cov_circle = self.ax.scatter(x_uavs, y_uavs, s=6000, c='b', alpha=0.3)
@@ -44,7 +45,7 @@ class AnimatedScatter(object):
         lc = LineCollection(c, linestyles=':')
         self.uav_connection = self.ax.add_collection(lc)
 
-        self.ax.axis([0, 10, 0, 10])
+        self.ax.axis([0, self.sim_size, 0, self.sim_size])
 
         return self.title, self.cov_circle, self.users, self.uavs, self.uav_connection
 
@@ -88,12 +89,7 @@ def render(user_locs, uav_locs):
     AnimatedScatter(user_locs, uav_locs)
     plt.show()
 
+
 if __name__ == '__main__':
-    from user_locs import user_locs
-    from uav_locs import uav_locs
-
-    user_locs = np.array(list(zip(*user_locs)))
-
-    list_uav_locs = np.array(uav_locs)
-    render(user_locs, list_uav_locs)
+    pass
 
