@@ -39,7 +39,7 @@ class UAVCoverage(gym.Env):
         self.n_uavs = n_uavs
 
         self.action_space = gym.spaces.MultiDiscrete(
-            np.array([4] * self.n_uavs, dtype=np.int32)
+            np.array([5] * self.n_uavs, dtype=np.int32)
         )
 
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
@@ -165,9 +165,6 @@ class UAVCoverage(gym.Env):
         plt.pause(0.001)
         plt.show()
         plt.clf()
-
-        # print(self.user_locs.tolist())
-        # print(gym_utils.conv_uav_locs(self.state['uav_locs']).tolist())
         # return list(map(list, zip(*gym_utils.conv_uav_locs(self.state['uav_locs'].tolist()))))
 
 

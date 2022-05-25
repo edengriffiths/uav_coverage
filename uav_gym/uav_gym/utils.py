@@ -21,18 +21,17 @@ def constrain_user_loc(user_loc, center, std, rng):
 
     return x_u, y_u
 
-
-
-
-
+# TODO: Need to add not move action.
 def get_move(action, dist):
     if action == 0:
-        return [0, dist]
+        return [0, 0]
     elif action == 1:
-        return [dist, 0]
+        return [0, dist]
     elif action == 2:
-        return [0, -dist]
+        return [dist, 0]
     elif action == 3:
+        return [0, -dist]
+    elif action == 4:
         return [-dist, 0]
 
 
