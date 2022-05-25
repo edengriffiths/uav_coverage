@@ -35,7 +35,7 @@ def get_move(action, dist):
         return [-dist, 0]
 
 
-def inbounds(loc, x_l_bound=0, x_u_bound=10, y_l_bound=0, y_u_bound=10):
+def inbounds(loc, x_u_bound, y_u_bound, x_l_bound=0, y_l_bound=0):
     return x_l_bound <= loc[0] <= x_u_bound and y_l_bound <= loc[1] <= y_u_bound
 
 

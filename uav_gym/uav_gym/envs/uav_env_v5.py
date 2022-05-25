@@ -7,28 +7,29 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
+    # 1 unit = 100 m
+
+    # ----
+    # Simulation settings
     n_users = 15
 
-    # 1 unit = 100 m
+    scale = 100
+
+    time_per_epoch = 1  # seconds
+
+    sim_size = 10 * scale
 
     # ----
     # UAV SETTINGS
     # radius of the coverage range on the ground in units
-    cov_range = 2  # units
+    cov_range = 1 * scale  # units
 
     # uav velocity (assumes constant velocity)
-    uav_vel = 1 / 9  # units / s
-    dist = 1
+    uav_vel = 1 / 9  # units / s  # TODO: Change
+    dist = 1 * scale # TODO: Change to smaller distance
 
     # battery capacity
     uav_bat_cap = 180
-
-    # ----
-    # Simulation settings
-    time_per_epoch = 1  # seconds
-
-    sim_size = 10
-    sim_size_ = sim_size / dist
 
     def __init__(self, n_uavs: int = 5):
         self.seed()
@@ -43,11 +44,6 @@ class UAVCoverage(gym.Env):
         )
 
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
-        # self.observation_space = gym.spaces.MultiDiscrete(
-        #     np.array([self.sim_size * 1 / self.dist + 1] * 2 * self.n_uavs,
-        #              dtype=np.int32)
-        # )
-
         self.observation_space = gym.spaces.Dict({
             'uav_locs': gym.spaces.MultiDiscrete(
                 np.array([self.sim_size + 1] * 2 * self.n_uavs, dtype=np.int32)),
@@ -55,7 +51,7 @@ class UAVCoverage(gym.Env):
                 np.array([self.sim_size + 1] * 2 * self.n_users, dtype=np.int32)),
         })
 
-        self.energy_used = None
+        # self.energy_used = None
         self.state = None
         self.timestep = 0
 
@@ -66,7 +62,7 @@ class UAVCoverage(gym.Env):
     def _gen_user_locs(self):
         # TODO: Random cluster_stds?
         # TODO: How to do random_state? Using sim_size doesn't really make sense.
-        std = 0.5
+        std = 0.5 * self.scale
         # centers must be within one std of the border.
         center = [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std) for _ in range(2)]
         ul_init, _ = make_blobs(n_samples=self.n_users, centers=[center], cluster_std=[std])
@@ -85,7 +81,7 @@ class UAVCoverage(gym.Env):
 
         self.timestep = 0
 
-        self.energy_used = np.array([0] * self.n_uavs, dtype=np.float32)
+        # self.energy_used = np.array([0] * self.n_uavs, dtype=np.float32)
 
         return self.state
 
@@ -110,19 +106,21 @@ class UAVCoverage(gym.Env):
         maybe_locs = uav_locs + moves
 
         new_locs = np.array(
-            [maybe_locs[i] if gym_utils.inbounds(maybe_locs[i]) else uav_locs[i] for i in range(len(moves))],
+            [maybe_locs[i] if
+             gym_utils.inbounds(maybe_locs[i], self.sim_size, self.sim_size)
+             else uav_locs[i] for i in range(len(moves))],
             dtype=np.float32).flatten()
 
-        # ---
-        # calculate energy usage
-        # energy used moving + energy used hovering
-        time_moving = distances / self.uav_vel
-        time_hovering = self.time_per_epoch - time_moving
-        energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(
-            list(map(gym_utils.energy_hover, time_hovering)))
-
-        # update total energy used.
-        self.energy_used += energy_usage
+        # # ---
+        # # calculate energy usage
+        # # energy used moving + energy used hovering
+        # time_moving = distances / self.uav_vel
+        # time_hovering = self.time_per_epoch - time_moving
+        # energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(
+        #     list(map(gym_utils.energy_hover, time_hovering)))
+        #
+        # # update total energy used.
+        # self.energy_used += energy_usage
 
         # ---
         # calculate reward = sum of all scores
@@ -142,7 +140,12 @@ class UAVCoverage(gym.Env):
         self.state['uav_locs'] = np.array(new_locs, dtype=np.float32)
 
         # end episode if UAV runs out of battery
-        if any(self.energy_used > self.uav_bat_cap):
+        # if any(self.energy_used > self.uav_bat_cap):
+        #     done = True
+
+        # TODO: Check this is the correct value and that it agrees with animation.
+        # stop after 30 minutes where each timestep is 1 second.
+        if self.timestep >= 1800:
             done = True
 
         info = {}
@@ -153,8 +156,8 @@ class UAVCoverage(gym.Env):
         uav_locs = [self.state['uav_locs'][::2], self.state['uav_locs'][1::2]]
         user_locs = [self.state['user_locs'][::2], self.state['user_locs'][1::2]]
         # Render the environment to the screen
-        plt.xlim([0, 10])
-        plt.ylim([0, 10])
+        plt.xlim([0, self.sim_size])
+        plt.ylim([0, self.sim_size])
 
         plt.scatter(uav_locs[0], uav_locs[1], s=6000, color='blue', alpha=0.3)
         plt.scatter(uav_locs[0], uav_locs[1], color='red')
