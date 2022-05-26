@@ -1,4 +1,3 @@
-
 import numpy as np
 from functools import reduce
 from scipy.spatial import distance
@@ -8,6 +7,23 @@ import networkx as nx
 
 def conv_locs(locs):
     return np.array([locs[x:x + 2] for x in range(0, len(locs), 2)])
+
+
+def scale(locs_, s: int, d: str) -> np.array:
+    """
+    Rescale a list of locations
+    :param locs: 1D np.array of locations.
+    :param s: scaling factor
+    :param d: the direction of scale: 'up' (increase the fidelity), 'down' (decrease the fidelity).
+    :return: scaled locs or raise a ValueError if incorrect direction using.
+    """
+    locs = np.copy(locs_)
+    if d == 'up':
+        return locs * s
+    elif d == 'down':
+        return (locs / s).round(0)
+    else:
+        raise ValueError(f"Invalid direction, {d}, must be either 'up', or 'down'")
 
 
 def constrain_user_loc(user_loc, center, std, rng):
@@ -20,6 +36,7 @@ def constrain_user_loc(user_loc, center, std, rng):
         y_u = rng.random.uniform(y_c - 3 * std, y_c + 3 * std)
 
     return x_u, y_u
+
 
 # TODO: Need to add not move action.
 def get_move(action, dist):
@@ -68,7 +85,7 @@ def get_score(dist: float, cov_range: float, p_factor: float) -> float:
     if dist <= cov_range:
         return 1
     else:
-        return p_factor * 1/(1 + dist)
+        return p_factor * 1 / (1 + dist)
 
 
 def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_factor: float) -> np.array([float]):
@@ -83,6 +100,7 @@ def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_fact
                             for i in range(len(min_dist_to_users))])
 
     return user_scores
+
 
 def make_graph_from_locs(uav_locs, home_loc, comm_range):
     """
@@ -104,6 +122,7 @@ def make_graph_from_locs(uav_locs, home_loc, comm_range):
     g.add_edges_from(edges)
 
     return g
+
 
 # energy used hovering
 def energy_hover(t): return t / 10

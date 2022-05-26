@@ -7,26 +7,25 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    # 1 unit = 100 m
-
     # ----
     # Simulation settings
     n_users = 15
 
-    scale = 100
+    # metres per unit
+    scale = 100  # keep sim_size divisible by scale
 
     time_per_epoch = 1  # seconds
 
-    sim_size = 10 * scale
+    sim_size = 1000
 
     # ----
     # UAV SETTINGS
     # radius of the coverage range on the ground in units
-    cov_range = 1 * scale  # units
+    cov_range = 200  # metres
 
     # uav velocity (assumes constant velocity)
     uav_vel = 1 / 9  # units / s  # TODO: Change
-    dist = 1 * scale # TODO: Change to smaller distance
+    dist = scale  # TODO: Change to smaller distance
 
     # battery capacity
     uav_bat_cap = 180
@@ -46,9 +45,9 @@ class UAVCoverage(gym.Env):
         # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
         self.observation_space = gym.spaces.Dict({
             'uav_locs': gym.spaces.MultiDiscrete(
-                np.array([self.sim_size + 1] * 2 * self.n_uavs, dtype=np.int32)),
+                np.array([self.sim_size // self.scale + 1] * 2 * self.n_uavs, dtype=np.int32)),
             'user_locs': gym.spaces.MultiDiscrete(
-                np.array([self.sim_size + 1] * 2 * self.n_users, dtype=np.int32)),
+                np.array([self.sim_size // self.scale + 1] * 2 * self.n_users, dtype=np.int32)),
         })
 
         # self.energy_used = None
@@ -62,23 +61,22 @@ class UAVCoverage(gym.Env):
     def _gen_user_locs(self):
         # TODO: Random cluster_stds?
         # TODO: How to do random_state? Using sim_size doesn't really make sense.
-        std = 0.5 * self.scale
+        std = 0.05 * self.sim_size
         # centers must be within one std of the border.
         center = [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std) for _ in range(2)]
         ul_init, _ = make_blobs(n_samples=self.n_users, centers=[center], cluster_std=[std])
 
         # constrain users to be with 3 stds of the centre and round locations to a whole number.
         ul_constr = np.array([gym_utils.constrain_user_loc(user_loc, center, std, self.np_random)
-                              for user_loc in ul_init]).round(0)
+                              for user_loc in ul_init])
 
         return ul_constr
 
     def reset(self):
         self.state = {
             'uav_locs': np.array([0] * 2 * self.n_uavs),
-            'user_locs': self._gen_user_locs().flatten()
+            'user_locs': gym_utils.scale(self._gen_user_locs().flatten(), s=self.scale, d='down')
         }
-
         self.timestep = 0
 
         # self.energy_used = np.array([0] * self.n_uavs, dtype=np.float32)
@@ -89,9 +87,9 @@ class UAVCoverage(gym.Env):
         done = False
         self.timestep += 1
 
-        # unpack state
-        uav_locs_ = self.state['uav_locs']
-        user_locs_ = self.state['user_locs']
+        # unpack state and convert units to metres.
+        uav_locs_ = gym_utils.scale(self.state['uav_locs'], self.scale, 'up')
+        user_locs_ = gym_utils.scale(self.state['user_locs'], self.scale, 'up')
 
         # convert the lists of locs of the form [x1, y1, x2, y2] to [[x1, y1], [x2, y2]]
         uav_locs = gym_utils.conv_locs(uav_locs_)
@@ -137,8 +135,7 @@ class UAVCoverage(gym.Env):
         reward = total_score / self.n_users
 
         # update state
-        self.state['uav_locs'] = np.array(new_locs, dtype=np.float32)
-
+        self.state['uav_locs'] = gym_utils.scale(np.array(new_locs, dtype=np.float32), self.scale, 'down')
         # end episode if UAV runs out of battery
         # if any(self.energy_used > self.uav_bat_cap):
         #     done = True
@@ -153,8 +150,12 @@ class UAVCoverage(gym.Env):
         return self.state, reward, done, info
 
     def render(self, mode="human"):
-        uav_locs = [self.state['uav_locs'][::2], self.state['uav_locs'][1::2]]
-        user_locs = [self.state['user_locs'][::2], self.state['user_locs'][1::2]]
+        uav_locs_ = gym_utils.scale(self.state['uav_locs'], self.scale, 'up')
+        user_locs_ = gym_utils.scale(self.state['user_locs'], self.scale, 'up')
+
+        uav_locs = [uav_locs_[::2], uav_locs_[1::2]]
+        user_locs = [user_locs_[::2], user_locs_[1::2]]
+
         # Render the environment to the screen
         plt.xlim([0, self.sim_size])
         plt.ylim([0, self.sim_size])
