@@ -50,7 +50,6 @@ class UAVCoverage(gym.Env):
                 np.array([self.sim_size // self.scale + 1] * 2 * self.n_users, dtype=np.int32)),
         })
 
-        # self.energy_used = None
         self.state = None
         self.timestep = 0
 
@@ -78,8 +77,6 @@ class UAVCoverage(gym.Env):
             'user_locs': gym_utils.scale(self._gen_user_locs().flatten(), s=self.scale, d='down')
         }
         self.timestep = 0
-
-        # self.energy_used = np.array([0] * self.n_uavs, dtype=np.float32)
 
         return self.state
 
@@ -109,17 +106,6 @@ class UAVCoverage(gym.Env):
              else uav_locs[i] for i in range(len(moves))],
             dtype=np.float32).flatten()
 
-        # # ---
-        # # calculate energy usage
-        # # energy used moving + energy used hovering
-        # time_moving = distances / self.uav_vel
-        # time_hovering = self.time_per_epoch - time_moving
-        # energy_usage = np.array(list(map(gym_utils.energy_move, time_moving))) + np.array(
-        #     list(map(gym_utils.energy_hover, time_hovering)))
-        #
-        # # update total energy used.
-        # self.energy_used += energy_usage
-
         # ---
         # calculate reward = sum of all scores
 
@@ -136,9 +122,6 @@ class UAVCoverage(gym.Env):
 
         # update state
         self.state['uav_locs'] = gym_utils.scale(np.array(new_locs, dtype=np.float32), self.scale, 'down')
-        # end episode if UAV runs out of battery
-        # if any(self.energy_used > self.uav_bat_cap):
-        #     done = True
 
         # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
@@ -169,7 +152,6 @@ class UAVCoverage(gym.Env):
         plt.pause(0.001)
         plt.show()
         plt.clf()
-        # return list(map(list, zip(*gym_utils.conv_uav_locs(self.state['uav_locs'].tolist()))))
 
 
 if __name__ == '__main__':
