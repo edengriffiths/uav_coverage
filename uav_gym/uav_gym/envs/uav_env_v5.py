@@ -12,7 +12,7 @@ class UAVCoverage(gym.Env):
     n_users = 15
 
     # metres per unit
-    scale = 100  # keep sim_size divisible by scale
+    scale = 50  # keep sim_size divisible by scale
 
     time_per_epoch = 1  # seconds
 
@@ -63,7 +63,8 @@ class UAVCoverage(gym.Env):
         std = 0.05 * self.sim_size
         # centers must be within one std of the border.
         center = [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std) for _ in range(2)]
-        ul_init, _ = make_blobs(n_samples=self.n_users, centers=[center], cluster_std=[std])
+        ul_init, _ = make_blobs(n_samples=self.n_users, centers=[center], cluster_std=[std],
+                                random_state=self.np_random.randint(2**32 - 1))  # TODO: This is a lot of possible states but it's still bounded. would be better if unbounded.
 
         # constrain users to be with 3 stds of the centre and round locations to a whole number.
         ul_constr = np.array([gym_utils.constrain_user_loc(user_loc, center, std, self.np_random)
