@@ -50,6 +50,9 @@ class UAVCoverage(gym.Env):
                 np.array([self.sim_size // self.scale + 1] * 2 * self.n_users, dtype=np.int32)),
         })
 
+        self.cov_scores = np.array([0] * self.n_users)
+        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4./5, 1./5])
+
         self.state = None
         self.timestep = 0
 
@@ -102,27 +105,34 @@ class UAVCoverage(gym.Env):
         maybe_locs = uav_locs + moves
 
         new_locs = np.array(
-            [maybe_locs[i] if
-             gym_utils.inbounds(maybe_locs[i], self.sim_size, self.sim_size)
-             else uav_locs[i] for i in range(len(moves))],
-            dtype=np.float32).flatten()
+            [maybe_locs[i]
+             if gym_utils.inbounds(maybe_locs[i], self.sim_size, self.sim_size)
+             else
+             uav_locs[i]
+             for i in range(len(moves))],
+            dtype=np.float32)
 
         # ---
         # calculate reward = sum of all scores
 
         total_score = sum(
             gym_utils.get_scores(
-                gym_utils.conv_locs(new_locs),
+                new_locs,
                 user_locs,
                 self.cov_range,
                 p_factor=0.8
             )
         )
 
+        # TODO: When I implement higher rewards for preferred users their coverage scores should be the same, just their rewards different
         reward = total_score / self.n_users
 
         # update state
-        self.state['uav_locs'] = gym_utils.scale(np.array(new_locs, dtype=np.float32), self.scale, 'down')
+        self.state['uav_locs'] = gym_utils.scale(np.array(new_locs.flatten(), dtype=np.float32), self.scale, 'down')
+
+        # TODO: When I implement higher rewards for preferred users their coverage scores should be the same, just their rewards differentgi
+        # update cov_scores
+        self.cov_scores += gym_utils.get_coverage_state(new_locs, user_locs, self.cov_range)
 
         # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
