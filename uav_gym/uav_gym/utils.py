@@ -62,10 +62,7 @@ def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_rang
 
 
 def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
-    coverage_states = list(map(get_coverage_state_from_uav,
-                               uav_locs,
-                               [user_locs] * len(uav_locs),
-                               [cov_range] * len(uav_locs)))
+    coverage_states = [get_coverage_state_from_uav(uav_loc, user_locs, cov_range) for uav_loc in uav_locs]
 
     return reduce(lambda acc, x: acc | x, coverage_states)
 
