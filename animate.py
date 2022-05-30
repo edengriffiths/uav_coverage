@@ -25,7 +25,7 @@ class AnimatedScatter(object):
         self.ax.set_xlim(0, self.sim_size)
         self.ax.set_ylim(0, self.sim_size)
 
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, init_func=self.setup,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=10, init_func=self.setup,
                                            frames=len(self.uav_locs), repeat=False)
 
     def setup(self):
