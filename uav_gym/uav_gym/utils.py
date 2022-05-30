@@ -3,6 +3,7 @@ from functools import reduce
 from scipy.spatial import distance
 import numpy as np
 import networkx as nx
+import pandas as pd
 
 
 def conv_locs(locs):
@@ -38,7 +39,21 @@ def constrain_user_loc(user_loc, center, std, rng):
     return x_u, y_u
 
 
-# TODO: Need to add not move action.
+def constrain_user_locs(user_locs, blob_ids, centers, stds, rng):
+
+    ul1 = np.array(list(zip(blob_ids, user_locs)), dtype='object')
+    ul2 = ul1[ul1[:, 0].argsort()]
+    ul3 = np.array(np.split(ul2[:, 1], np.unique(ul2[:, 0], return_index=True)[1][1:]), dtype='object')
+
+    ul_constrained = np.array([
+        constrain_user_loc(user_loc, centers[c_id], stds[c_id], rng)
+        for c_id in range(len(centers))
+        for user_loc in ul3[c_id]
+    ])
+
+    return np.concatenate(ul_constrained)
+
+
 def get_move(action, dist):
     if action == 0:
         return [0, 0]
@@ -97,6 +112,16 @@ def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_fact
                             for i in range(len(min_dist_to_users))])
 
     return user_scores
+
+
+def fairness_idx(cov_scores: np.array([float])) -> float:
+    """
+    Calculates the Jain's Fairness index for the user coverage scores.
+    :param cov_scores: an np array of floats between 0 and 1.
+    :return: a float between 0 and 1 that represents the fairness of the coverage.
+    """
+    n_users = len(cov_scores)
+    return sum(cov_scores) ** 2 / (n_users * sum(cov_scores ** 2))
 
 
 def make_graph_from_locs(uav_locs, home_loc, comm_range):

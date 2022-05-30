@@ -10,6 +10,7 @@ class UAVCoverage(gym.Env):
     # ----
     # Simulation settings
     n_users = 15
+    n_clusters = 2
 
     # metres per unit
     scale = 50  # keep sim_size divisible by scale
@@ -42,7 +43,7 @@ class UAVCoverage(gym.Env):
             np.array([5] * self.n_uavs, dtype=np.int32)
         )
 
-        # uav_locs is the locations of each UAV in the form [x1, y1, x2, y2]
+        # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = gym.spaces.Dict({
             'uav_locs': gym.spaces.MultiDiscrete(
                 np.array([self.sim_size // self.scale + 1] * 2 * self.n_uavs, dtype=np.int32)),
@@ -52,6 +53,7 @@ class UAVCoverage(gym.Env):
 
         self.cov_scores = np.array([0] * self.n_users)
         self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4./5, 1./5])
+        self.pref_factor = 2
 
         self.state = None
         self.timestep = 0
@@ -65,20 +67,23 @@ class UAVCoverage(gym.Env):
         # TODO: How to do random_state? Using sim_size doesn't really make sense.
         std = 0.05 * self.sim_size
         # centers must be within one std of the border.
-        center = [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std) for _ in range(2)]
-        ul_init, _ = make_blobs(n_samples=self.n_users, centers=[center], cluster_std=[std],
-                                random_state=self.np_random.randint(2**32 - 1))  # TODO: This is a lot of possible states but it's still bounded. would be better if unbounded.
+        centers = [
+            [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std)
+             for _ in range(2)]
+            for _ in range(self.n_clusters)
+        ]
 
-        # constrain users to be with 3 stds of the centre and round locations to a whole number.
-        ul_constr = np.array([gym_utils.constrain_user_loc(user_loc, center, std, self.np_random)
-                              for user_loc in ul_init])
+        stds = [std] * self.n_clusters
 
-        return ul_constr
+        ul_init, blob_ids = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=stds,
+                                       random_state=self.np_random.randint(2**32 - 1))
+
+        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.np_random).flatten()
 
     def reset(self):
         self.state = {
             'uav_locs': np.array([0] * 2 * self.n_uavs),
-            'user_locs': gym_utils.scale(self._gen_user_locs().flatten(), s=self.scale, d='down')
+            'user_locs': gym_utils.scale(self._gen_user_locs(), s=self.scale, d='down')
         }
         self.timestep = 0
 
@@ -112,27 +117,16 @@ class UAVCoverage(gym.Env):
              for i in range(len(moves))],
             dtype=np.float32)
 
-        # ---
-        # calculate reward = sum of all scores
-
-        total_score = sum(
-            gym_utils.get_scores(
-                new_locs,
-                user_locs,
-                self.cov_range,
-                p_factor=0.8
-            )
-        )
-
-        # TODO: When I implement higher rewards for preferred users their coverage scores should be the same, just their rewards different
-        reward = total_score / self.n_users
-
         # update state
         self.state['uav_locs'] = gym_utils.scale(np.array(new_locs.flatten(), dtype=np.float32), self.scale, 'down')
 
-        # TODO: When I implement higher rewards for preferred users their coverage scores should be the same, just their rewards differentgi
         # update cov_scores
         self.cov_scores += gym_utils.get_coverage_state(new_locs, user_locs, self.cov_range)
+
+        # ---
+        # NOTE: reward calc needs to come after self.cov_scores update.
+        # calculate reward = sum of all scores
+        reward = self.reward_0(new_locs, user_locs)
 
         # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
@@ -142,6 +136,38 @@ class UAVCoverage(gym.Env):
         info = {}
 
         return self.state, reward, done, info
+
+    def reward_0(self, uav_locs, user_locs):
+        total_score = sum(
+            gym_utils.get_scores(
+                uav_locs,
+                user_locs,
+                self.cov_range,
+                p_factor=0.8
+            )
+        )
+
+        return total_score / self.n_users
+
+    def reward_1(self, uav_locs, user_locs):
+        f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
+
+        return f_idx * self.reward_0(uav_locs, user_locs)
+
+    def reward_2(self, uav_locs, user_locs):
+        scores = gym_utils.get_scores(
+                uav_locs,
+                user_locs,
+                self.cov_range,
+                p_factor=0.8
+            )
+
+        # increase the scores of the preferred users by a factor of self.pref_factor.
+        scaled_scores = scores + (self.pref_factor - 1) * self.pref_users * scores
+
+        total_score = sum(scaled_scores)
+
+        return total_score / self.n_users
 
     def render(self, mode="human"):
         uav_locs_ = gym_utils.scale(self.state['uav_locs'], self.scale, 'up')
