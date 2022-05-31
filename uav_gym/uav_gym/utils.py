@@ -146,6 +146,20 @@ def make_graph_from_locs(uav_locs, home_loc, comm_range):
     return g
 
 
+def get_disconnected_count(G):
+    """
+    :param G: networkx graph
+    :return: the number of nodes that are unreachable from home.
+    """
+    home = 0
+
+    # Get the subgraph of all the nodes connected to home
+    s = G.subgraph(nx.shortest_path(G, home))
+
+    # Return the number of nodes not connected to home
+    return G.number_of_nodes() - s.number_of_nodes()
+
+
 # energy used hovering
 def energy_hover(t): return t / 10
 

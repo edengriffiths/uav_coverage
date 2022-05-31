@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 
 class UAVCoverage(gym.Env):
     # ----
-    # Simulation settings
+    # SIMULATION SETTINGS
     n_users = 15
     n_clusters = 2
+    home_loc = np.array([0, 0])
 
     # metres per unit
     scale = 50  # keep sim_size divisible by scale
@@ -23,6 +24,7 @@ class UAVCoverage(gym.Env):
     # UAV SETTINGS
     # radius of the coverage range on the ground in units
     cov_range = 200  # metres
+    comm_range = 500  # metres
 
     # uav velocity (assumes constant velocity)
     uav_vel = 1 / 9  # units / s  # TODO: Change
@@ -66,7 +68,7 @@ class UAVCoverage(gym.Env):
         # TODO: Random cluster_stds?
         # TODO: How to do random_state? Using sim_size doesn't really make sense.
         std = 0.05 * self.sim_size
-        # centers must be within one std of the border.
+        # centers must be within three stds of the border.
         centers = [
             [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std)
              for _ in range(2)]
@@ -126,7 +128,7 @@ class UAVCoverage(gym.Env):
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update.
         # calculate reward = sum of all scores
-        reward = self.reward_0(new_locs, user_locs)
+        reward = self.reward_1(new_locs, user_locs)
 
         # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
@@ -138,6 +140,9 @@ class UAVCoverage(gym.Env):
         return self.state, reward, done, info
 
     def reward_0(self, uav_locs, user_locs):
+        """
+        Basic
+        """
         total_score = sum(
             gym_utils.get_scores(
                 uav_locs,
@@ -150,11 +155,30 @@ class UAVCoverage(gym.Env):
         return total_score / self.n_users
 
     def reward_1(self, uav_locs, user_locs):
+        """
+        Basic + punishment for disconnection
+        """
+        total_score = sum(
+            gym_utils.get_scores(
+                uav_locs,
+                user_locs,
+                self.cov_range,
+                p_factor=0.8
+            )
+        )
+        reward = total_score / self.n_users
+
+        graph = gym_utils.make_graph_from_locs(uav_locs, self.home_loc, self.comm_range)
+        discon_count = gym_utils.get_disconnected_count(graph)
+
+        return reward - 1000 * reward * discon_count
+
+    def reward_2(self, uav_locs, user_locs):
         f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
 
         return f_idx * self.reward_0(uav_locs, user_locs)
 
-    def reward_2(self, uav_locs, user_locs):
+    def reward_3(self, uav_locs, user_locs):
         scores = gym_utils.get_scores(
                 uav_locs,
                 user_locs,
@@ -180,7 +204,7 @@ class UAVCoverage(gym.Env):
         plt.xlim([0, self.sim_size])
         plt.ylim([0, self.sim_size])
 
-        plt.scatter(uav_locs[0], uav_locs[1], s=6000, color='blue', alpha=0.3)
+        plt.scatter(uav_locs[0], uav_locs[1], s=20000, color='blue', alpha=0.3)
         plt.scatter(uav_locs[0], uav_locs[1], color='red')
 
         plt.scatter(user_locs[0], user_locs[1], color='grey', s=2)
@@ -192,7 +216,7 @@ class UAVCoverage(gym.Env):
 
 
 if __name__ == '__main__':
-    env = UAVCoverage(n_uavs=1)
+    env = UAVCoverage(n_uavs=2)
 
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
@@ -210,6 +234,8 @@ if __name__ == '__main__':
         if done:
             obs = env.reset()
         env.render()
+
+
 
     # model = PPO('MultiInputPolicy', env, verbose=1)
     # model.learn(total_timesteps=10**5)
