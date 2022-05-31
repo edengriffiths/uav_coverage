@@ -20,48 +20,77 @@ class AnimatedScatter(object):
 
         self.time_per_epoch = 1
 
+        # set up figures and axes
+        # ---
         self.fig, self.ax = plt.subplots()
 
+        # set figure size
+        self.fig.set_size_inches(6, 6)
+
+        # set axes to always be equal
+        plt.axis('scaled')
+
+        # set axis limits
         self.ax.set_xlim(0, self.sim_size)
         self.ax.set_ylim(0, self.sim_size)
 
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=10, init_func=self.setup,
-                                           frames=len(self.uav_locs), repeat=False)
+        self.title = self.ax.text(0.65 * self.sim_size, 1.05 * self.sim_size, "Time Elapsed: 00:00:00")
+        # initialise patches
+        # ---
+        self.rect = matplotlib.patches.Rectangle((0, 0), 50, 20)
+
+        self.circles = [plt.Circle((0, 0), 200, fc='b', alpha=0.3) for _ in range(len(self.uav_locs[0][0]))]
+
+        # set up animation
+        self.ani = animation.FuncAnimation(self.fig, self.update,
+                                           init_func=self.setup,
+                                           frames=len(self.uav_locs),
+                                           interval=50,
+                                           repeat=False)
 
     def setup(self):
+        """
+        Initialise the figure for the animation
+        """
         x_uavs = self.uav_locs[0][0]
         y_uavs = self.uav_locs[0][1]
 
-        rect = matplotlib.patches.Rectangle((0, 0), 0.5, 0.2)
-        self.ax.add_patch(rect)
-
-        self.title = self.ax.text(0.65 * self.sim_size, 1.05 * self.sim_size, "Time Elapsed: 0")
-
+        # add users
         self.users = self.ax.scatter(self.user_locs[0], self.user_locs[1], s=20, c='gray')
-        self.cov_circle = self.ax.scatter(x_uavs, y_uavs, s=6000, c='b', alpha=0.3)
+
+        # add UAVs
         self.uavs = self.ax.scatter(x_uavs, y_uavs, s=20, c='r')
 
+        # add coverage of UAVs
+        for circle in self.circles:
+            self.ax.add_patch(circle)
+
+        # add connection links between UAVs
         c = get_connections(x_uavs, y_uavs)
         lc = LineCollection(c, linestyles=':')
         self.uav_connection = self.ax.add_collection(lc)
 
-        self.ax.axis([0, self.sim_size, 0, self.sim_size])
-
-        return self.title, self.cov_circle, self.users, self.uavs, self.uav_connection
+        return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
 
     def update(self, i):
         x_uavs = self.uav_locs[i][0]
         y_uavs = self.uav_locs[i][1]
 
+        # Update time
         self.title.set_text(f"Time Elapsed: {time.strftime(('%H:%M:%S'), time.gmtime(i * self.time_per_epoch))}")
 
-        self.cov_circle.set_offsets(np.c_[x_uavs, y_uavs])
+        # Update UAV positions
         self.uavs.set_offsets(np.c_[x_uavs, y_uavs])
 
+        # Update UAV coverage positions
+        for circle, x, y in zip(self.circles, x_uavs, y_uavs):
+            circle.center = (x, y)
+
+        # Update links between UAVs
         c = get_connections(x_uavs, y_uavs)
         self.uav_connection.set_segments(c)
 
-        return self.title, self.cov_circle, self.users, self.uavs, self.uav_connection
+        return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
 
 
 def edge_to_locs(g: nx.Graph, e: Tuple[int]):
@@ -83,11 +112,6 @@ def get_connections(x_uavs, y_uavs):
     # TODO: Read these values from somewhere
     g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=5)
     return get_locs_of_connected(g)
-
-
-def render(user_locs, uav_locs):
-    AnimatedScatter(user_locs, uav_locs)
-    plt.show()
 
 
 if __name__ == '__main__':
