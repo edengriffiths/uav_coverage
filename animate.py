@@ -13,10 +13,13 @@ from uav_gym.utils import make_graph_from_locs
 
 
 class AnimatedScatter(object):
-    def __init__(self, user_locs, uav_locs, sim_size):
+    def __init__(self, user_locs, uav_locs, cov_range, comm_range, sim_size):
         self.uav_locs = uav_locs
         self.user_locs = user_locs
+        self.cov_range = cov_range
+        self.comm_range = comm_range
         self.sim_size = sim_size
+
 
         self.time_per_epoch = 1
 
@@ -39,13 +42,13 @@ class AnimatedScatter(object):
         # ---
         self.rect = matplotlib.patches.Rectangle((0, 0), 50, 20)
 
-        self.circles = [plt.Circle((0, 0), 200, fc='b', alpha=0.3) for _ in range(len(self.uav_locs[0][0]))]
+        self.circles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(len(self.uav_locs[0][0]))]
 
         # set up animation
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=len(self.uav_locs),
-                                           interval=50,
+                                           interval=1000,
                                            repeat=False)
 
     def setup(self):
@@ -66,7 +69,7 @@ class AnimatedScatter(object):
             self.ax.add_patch(circle)
 
         # add connection links between UAVs
-        c = get_connections(x_uavs, y_uavs)
+        c = get_connections(x_uavs, y_uavs, comm_range=self.comm_range)
         lc = LineCollection(c, linestyles=':')
         self.uav_connection = self.ax.add_collection(lc)
 
@@ -87,7 +90,7 @@ class AnimatedScatter(object):
             circle.center = (x, y)
 
         # Update links between UAVs
-        c = get_connections(x_uavs, y_uavs)
+        c = get_connections(x_uavs, y_uavs, comm_range=self.comm_range)
         self.uav_connection.set_segments(c)
 
         return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
@@ -108,12 +111,21 @@ def get_locs_of_connected(g: nx.Graph):
     return locs
 
 
-def get_connections(x_uavs, y_uavs):
+def get_connections(x_uavs, y_uavs, comm_range):
     # TODO: Read these values from somewhere
-    g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=5)
+    g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=comm_range)
     return get_locs_of_connected(g)
 
 
 if __name__ == '__main__':
-    pass
+    uav_locs = [
+        [[0, 0], [0, 0]],
+        [[100, 0], [100, 0]],
+        [[200, 0], [200, 0]],
+    ]
+
+    user_locs = [[], []]
+
+    a = AnimatedScatter(user_locs, uav_locs, cov_range=200, comm_range=500, sim_size=1000)
+    plt.show()
 
