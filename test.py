@@ -15,12 +15,12 @@ import matplotlib.pyplot as plt
 env_v = 'v5'
 models_dir = f"models/{env_v}/PPO"
 
-env = gym.make('uav-v0', n_uavs=1)
-env.seed(0)
+env = gym.make('uav-v0', n_uavs=2)
+# env.seed(0)
 env.reset()
 
 
-model = PPO.load(f"{models_dir}/1110000.zip", env=env)
+model = PPO.load(f"{models_dir}/360000.zip", env=env)
 
 locs = []
 
@@ -35,15 +35,22 @@ while not done:
 
 c_scores = env.cov_scores / env.timestep
 avg_cov_score = c_scores.mean()
-f_ind = sum(c_scores) ** 2 / (env.n_users * sum(c_scores ** 2))
 
-pref = env.pref_users * c_scores
+# if all the coverage scores are zero, the fairness index is 1.
+if any(c_scores):
+    f_ind = sum(c_scores) ** 2 / (env.n_users * sum(c_scores ** 2))
+else:
+    f_ind = 1
+
+# add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
+_c_scores = c_scores + 1
+pref = env.pref_users * _c_scores
 pref = pref[pref != 0]
-avg_pref_score = pref.mean()
+avg_pref_score = (pref - 1).mean()
 
-reg = (1 - env.pref_users) * c_scores
+reg = (1 - env.pref_users) * _c_scores
 reg = reg[reg != 0]
-avg_reg_score = reg.mean()
+avg_reg_score = (reg - 1).mean()
 
 print(c_scores)
 print(avg_cov_score)
@@ -60,5 +67,5 @@ user_locs = np.array(list(zip(*user_locs)))
 list_uav_locs = np.array(locs)
 
 
-# a = animate.AnimatedScatter(user_locs, list_uav_locs, env.sim_size)
-# plt.show()
+a = animate.AnimatedScatter(user_locs, list_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
+plt.show()
