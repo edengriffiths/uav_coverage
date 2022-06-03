@@ -36,10 +36,9 @@ class UAVCoverage(gym.Env):
 
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
         self.n_clusters = 2
-        self.user_locs = []
 
-        self.cov_scores = np.array([0] * self.n_users)
-        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
+        self.cov_scores = None
+        self.pref_users = None
         self.pref_factor = 2
 
         # ----
@@ -61,6 +60,10 @@ class UAVCoverage(gym.Env):
             'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)]).flatten(),
             'user_locs': gym_utils.scale(self._gen_user_locs_1(), s=self.scale, d='down').flatten()
         }
+
+        self.cov_scores = np.array([0] * self.n_users)
+        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
+
         self.timestep = 0
 
         return self.state
