@@ -1,5 +1,8 @@
+from typing import Tuple
+
 import gym
 from gym.utils import seeding
+from uav_gym.envs.env_settings import Settings
 import numpy as np
 from sklearn.datasets import make_blobs
 import uav_gym.utils as gym_utils
@@ -7,48 +10,44 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    # ----
-    # SIMULATION SETTINGS
-    n_users = 15
-    n_clusters = 2
-    home_loc = np.array([0, 0])
+    def __init__(self):
+        self.sg = Settings()
 
-    # metres per unit
-    scale = 50  # keep sim_size divisible by scale
-
-    time_per_epoch = 1  # seconds
-
-    sim_size = 1000
-
-    # ----
-    # UAV SETTINGS
-    # radius of the coverage range on the ground in units
-    cov_range = 200  # metres
-    comm_range = 1500  # metres
-
-    # uav velocity (assumes constant velocity)
-    uav_vel = 1 / 9  # units / s  # TODO: Change
-    dist = scale  # TODO: Change to smaller distance
-
-    # battery capacity
-    uav_bat_cap = 180
-
-    def __init__(self, n_uavs: int = 5):
         self.seed()
 
-        self.user_centres = []
-        self.user_locs = []
-        # TODO: Random number of UAVs?
-        self.n_uavs = n_uavs
+        # ----
+        # SIMULATION
+        self.sim_size = self.sg.V['SIM_SIZE']
+        self.scale = self.sg.V['SCALE']
 
+        self.home_loc = self.sg.V['HOME_LOC']
+
+        # ----
+        # UAV
+        self.n_uavs = self.sg.V['NUM_UAV']
+        self.cov_range = self.sg.V['COV_RANGE']
+        self.comm_range = self.sg.V['COMM_RANGE']
+
+        self.dist = self.sg.V['DIST']
+
+        # ----
+        # USERS
+        self.n_users = self.sg.V['NUM_USERS']
+
+        self.b_factor = self.sg.V['BOUNDARY_FACTOR']
+        self.n_clusters = 2
+        self.user_locs = []
+
+        self.cov_scores = np.array([0] * self.n_users)
+        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
+        self.pref_factor = 2
+
+        # ----
+        # SPACES
         self.action_space = self._action_space_0()
 
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = self._observation_space_0()
-
-        self.cov_scores = np.array([0] * self.n_users)
-        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4./5, 1./5])
-        self.pref_factor = 2
 
         self.state = None
         self.timestep = 0
@@ -59,8 +58,8 @@ class UAVCoverage(gym.Env):
 
     def reset(self):
         self.state = {
-            'uav_locs': np.array([0] * 2 * self.n_uavs),
-            'user_locs': gym_utils.scale(self._gen_user_locs_1(), s=self.scale, d='down')
+            'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)]).flatten(),
+            'user_locs': gym_utils.scale(self._gen_user_locs_1(), s=self.scale, d='down').flatten()
         }
         self.timestep = 0
 
@@ -138,44 +137,37 @@ class UAVCoverage(gym.Env):
     def _gen_user_locs_0(self):
         # TODO: Random cluster_stds?
         # TODO: How to do random_state? Using sim_size doesn't really make sense.
-        std = 0.05 * self.sim_size
-        # centers must be within three stds of the border.
-        centers = [
-            [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std)
-             for _ in range(2)]
-            for _ in range(self.n_clusters)
-        ]
+        std = float(0.05 * self.sim_size)
 
-        stds = [std] * self.n_clusters
+        stds = tuple([std] * self.n_clusters)
+
+        centers = self.get_centers(stds)
 
         ul_init, blob_ids = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=stds,
-                                       random_state=self.np_random.randint(2**32 - 1))
+                                       random_state=self.np_random.randint(2 ** 32 - 1))
 
         # TODO: Should I sort the user_locs? Would it make it easier to find a solution?
-        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.np_random).flatten()
+        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.np_random)
 
     def _gen_user_locs_1(self):
         """
         User locations are sorted
         :return:
         """
-        # TODO: Random cluster_stds?
-        std = 0.05 * self.sim_size
-        # centers must be within three stds of the border.
+        ul_locs = self._gen_user_locs_0()
+
+        return np.array(sorted(ul_locs.tolist()))
+
+    def get_centers(self, stds: Tuple[float]):
+        assert all([self.b_factor * std < self.sim_size for std in stds])
+
         centers = [
             [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std)
-             for _ in range(2)]
+             for std in stds]
             for _ in range(self.n_clusters)
         ]
 
-        stds = [std] * self.n_clusters
-
-        ul_init, blob_ids = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=stds,
-                                       random_state=self.np_random.randint(2**32 - 1))
-
-        ul_locs = gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.np_random)
-
-        return np.array(sorted(ul_locs.tolist())).flatten()
+        return centers
 
     def _action_space_0(self):
         return gym.spaces.MultiDiscrete(
@@ -199,7 +191,7 @@ class UAVCoverage(gym.Env):
                 uav_locs,
                 user_locs,
                 self.cov_range,
-                p_factor=0.8
+                p_factor=self.sg.V['P_OUTSIDE_COV']
             )
         )
 
@@ -214,7 +206,7 @@ class UAVCoverage(gym.Env):
                 uav_locs,
                 user_locs,
                 self.cov_range,
-                p_factor=0.8
+                p_factor=self.sg.V['P_OUTSIDE_COV']
             )
         )
         reward = total_score / self.n_users
@@ -231,11 +223,11 @@ class UAVCoverage(gym.Env):
 
     def reward_3(self, uav_locs, user_locs):
         scores = gym_utils.get_scores(
-                uav_locs,
-                user_locs,
-                self.cov_range,
-                p_factor=0.8
-            )
+            uav_locs,
+            user_locs,
+            self.cov_range,
+            p_factor=self.sg.V['P_OUTSIDE_COV']
+        )
 
         # increase the scores of the preferred users by a factor of self.pref_factor.
         scaled_scores = scores + (self.pref_factor - 1) * self.pref_users * scores
@@ -244,8 +236,9 @@ class UAVCoverage(gym.Env):
 
         return total_score / self.n_users
 
+
 if __name__ == '__main__':
-    env = UAVCoverage(n_uavs=2)
+    env = UAVCoverage()
 
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
@@ -263,8 +256,6 @@ if __name__ == '__main__':
         if done:
             obs = env.reset()
         env.render()
-
-
 
     # model = PPO('MultiInputPolicy', env, verbose=1)
     # model.learn(total_timesteps=10**5)
