@@ -27,7 +27,7 @@ def scale(locs_, s: int, d: str) -> np.array:
         raise ValueError(f"Invalid direction, {d}, must be either 'up', or 'down'")
 
 
-def constrain_user_loc(user_loc, center, std, rng):
+def _constrain_user_loc(user_loc, center, std, rng):
     x_u, y_u = user_loc
     x_c, y_c = center
     if x_c - 3 * std > x_u > x_c + 3 * std:
@@ -39,19 +39,28 @@ def constrain_user_loc(user_loc, center, std, rng):
     return x_u, y_u
 
 
-def constrain_user_locs(user_locs, blob_ids, centers, stds, rng):
-
+def constrain_user_locs(user_locs: np.array(np.array([float])), blob_ids: np.array,
+                        centers: np.array(np.array([float])), stds: np.array(np.array([float])), rng):
+    """
+    Constrains a list of user locations to be within 3 standard deviations of the centers
+    :param user_locs: a list of user locations of the form [[x1, y1], [x2, y2], ..., [xn, yn]]
+    :param blob_ids: the blob id of each point eg [0, 1, ..., 0]
+    :param centers: the center of the blobs
+    :param stds: the standard deviations of the blobs
+    :param rng: a random number generator
+    :return: return a list of user locations of the same form as user_locs
+    """
     ul1 = np.array(list(zip(blob_ids, user_locs)), dtype='object')
     ul2 = ul1[ul1[:, 0].argsort()]
     ul3 = np.array(np.split(ul2[:, 1], np.unique(ul2[:, 0], return_index=True)[1][1:]), dtype='object')
 
     ul_constrained = np.array([
-        constrain_user_loc(user_loc, centers[c_id], stds[c_id], rng)
+        _constrain_user_loc(user_loc, centers[c_id], stds[c_id], rng)
         for c_id in range(len(centers))
         for user_loc in ul3[c_id]
     ])
 
-    return np.concatenate(ul_constrained)
+    return ul_constrained
 
 
 def get_move(action, dist):
@@ -82,7 +91,7 @@ def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
     return reduce(lambda acc, x: acc | x, coverage_states)
 
 
-def get_score(dist: float, cov_range: float, p_factor: float) -> float:
+def _get_score(dist: float, cov_range: float, p_factor: float) -> float:
     """
     user score = 1, if user is within coverage range of a UAV
                  p_factor * 1/(1 + distance) from the closest UAV, otherwise
@@ -108,7 +117,7 @@ def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_fact
     min_dist_to_users = dist_to_users.min(axis=0)
 
     # compute the score for each user
-    user_scores = np.array([get_score(min_dist_to_users[i], cov_range, p_factor)
+    user_scores = np.array([_get_score(min_dist_to_users[i], cov_range, p_factor)
                             for i in range(len(min_dist_to_users))])
 
     return user_scores
