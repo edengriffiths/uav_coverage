@@ -1,9 +1,12 @@
 import gym
 import uav_gym
 from uav_gym import utils as gym_utils
+import animate
+
 from stable_baselines3 import PPO
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 # models_dir = "rl-baselines3-zoo/logs/ppo"
 #
@@ -15,12 +18,12 @@ import matplotlib.pyplot as plt
 env_v = 'v5'
 models_dir = f"models/{env_v}/PPO"
 
-env = gym.make('uav-v0', n_uavs=2)
+env = gym.make('uav-v0')
 # env.seed(0)
 env.reset()
 
 
-model = PPO.load(f"{models_dir}/360000.zip", env=env)
+model = PPO.load(f"{models_dir}/550000.zip", env=env)
 
 locs = []
 
@@ -52,14 +55,7 @@ reg = (1 - env.pref_users) * _c_scores
 reg = reg[reg != 0]
 avg_reg_score = (reg - 1).mean()
 
-print(c_scores)
-print(avg_cov_score)
-print(f_ind)
-print(avg_pref_score)
-print(avg_reg_score)
 
-
-import animate
 
 user_locs = gym_utils.scale(obs['user_locs'], s=env.scale, d='up')
 user_locs = [user_locs[x:x + 2] for x in range(0, len(user_locs), 2)]
@@ -68,4 +64,23 @@ list_uav_locs = np.array(locs)
 
 
 a = animate.AnimatedScatter(user_locs, list_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
-plt.show()
+
+
+exp_num = 1
+directory = f"experiments/experiment #{exp_num}"
+
+with open(f"{directory}/data", 'w') as f:
+    f.write(f"Coverage scores: {c_scores} \n"
+            f"Mean coverage score: {avg_cov_score} \n"
+            f"Fairness index: {f_ind} \n"
+            f"Mean preferred score: {avg_pref_score} \n"
+            f"Mean regular score: {avg_reg_score} \n")
+
+with open(f"{directory}/settings", 'w') as f:
+    settings = uav_gym.envs.env_settings.Settings()
+    json.dump(settings.V, f)
+
+from matplotlib import animation
+f = rf"{directory}/animation.mp4"
+writervideo = animation.FFMpegWriter(fps=60)
+a.ani.save(f, writer=writervideo)
