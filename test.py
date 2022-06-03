@@ -1,17 +1,18 @@
 import gym
+from typing import Tuple
+
 import uav_gym
 from uav_gym import utils as gym_utils
 import animate
 
 from stable_baselines3 import PPO
 import numpy as np
+from operator import add
 import matplotlib.pyplot as plt
+from matplotlib import animation
 import json
 
 # models_dir = "rl-baselines3-zoo/logs/ppo"
-#
-# env = gym.make('uav-v0')
-# env.reset()
 #
 # model = PPO.load(f"{models_dir}/uav-v0_13/best_model.zip", env=env)
 
@@ -22,65 +23,157 @@ env = gym.make('uav-v0')
 # env.seed(0)
 env.reset()
 
-
 model = PPO.load(f"{models_dir}/550000.zip", env=env)
 
-locs = []
 
-obs = env.reset()
-done = False
-while not done:
-    action, _states = model.predict(obs)
-    obs, rewards, done, info = env.step(action)
-    l = gym_utils.scale(obs['uav_locs'], s=env.scale, d='up').tolist()
-    l = [l[::2], l[1::2]]
-    locs.append(l)
+def get_c_scores(i):
+    print(f"trial: {i}")
 
-c_scores = env.cov_scores / env.timestep
-avg_cov_score = c_scores.mean()
+    obs = env.reset()
+    done = False
+    while not done:
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
 
-# if all the coverage scores are zero, the fairness index is 1.
-if any(c_scores):
-    f_ind = sum(c_scores) ** 2 / (env.n_users * sum(c_scores ** 2))
-else:
-    f_ind = 1
-
-# add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
-_c_scores = c_scores + 1
-pref = env.pref_users * _c_scores
-pref = pref[pref != 0]
-avg_pref_score = (pref - 1).mean()
-
-reg = (1 - env.pref_users) * _c_scores
-reg = reg[reg != 0]
-avg_reg_score = (reg - 1).mean()
+    c_scores = env.cov_scores / env.timestep
+    return c_scores, env.pref_users
 
 
+def get_locs():
+    uav_locs = []
 
-user_locs = gym_utils.scale(obs['user_locs'], s=env.scale, d='up')
-user_locs = [user_locs[x:x + 2] for x in range(0, len(user_locs), 2)]
-user_locs = np.array(list(zip(*user_locs)))
-list_uav_locs = np.array(locs)
+    obs = env.reset()
+    done = False
+    while not done:
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+        uav_locs.append(obs['uav_locs'])
+
+    return obs['user_locs'], uav_locs
 
 
-a = animate.AnimatedScatter(user_locs, list_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
+def mean_cov_score(l_c_scores: np.array([[float]])) -> float:
+    return l_c_scores.mean()
+
+
+def get_fair_ind(c_scores: np.array([float]), n_users: int) -> float:
+    # if all the coverage scores are zero, the fairness index is 1.
+    if any(c_scores):
+        return sum(c_scores) ** 2 / (n_users * sum(c_scores ** 2))
+    else:
+        return 1.0
+
+
+def mean_fair_ind(l_c_scores: np.array([[float]]), n_users: int) -> float:
+    return np.array([get_fair_ind(c_scores, n_users) for c_scores in l_c_scores]).mean()
+
+
+def get_pref_scores(c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> np.array([float]):
+    # add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
+    _c_scores = c_scores + 1
+    pref = pref_ids * _c_scores
+    return pref[pref != 0] - 1
+
+
+def get_reg_scores(c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> np.array([float]):
+    # add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
+    _c_scores = c_scores + 1
+    reg = (1 - pref_ids) * _c_scores
+    return reg[reg != 0] - 1
+
+
+def mean_pref_scores(l_c_scores: np.array([[float]]), pref_ids: np.array([[0 | 1]])) -> float:
+    return \
+        np.concatenate(
+            np.array(
+                list(
+                    map(get_pref_scores, l_c_scores, pref_ids)
+                ),
+                dtype=object
+            )
+        ).mean()
+
+
+def mean_reg_scores(l_c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> float:
+    return \
+        np.concatenate(
+            np.array(
+                list(
+                    map(get_reg_scores, l_c_scores, pref_ids)
+                ),
+                dtype=object
+            )
+        ).mean()
+
+
+def get_metrics(n_trials=100) -> Tuple[float, float, float, float]:
+    l_c_scores, l_pref_ids = map(np.array,
+                              map(list,
+                                  zip(*[get_c_scores(i)
+                                        for i in range(n_trials)])))
+    n_users = len(l_pref_ids[0])
+
+    return (
+        mean_cov_score(l_c_scores),
+        mean_fair_ind(l_c_scores, n_users),
+        mean_pref_scores(l_c_scores, l_pref_ids),
+        mean_reg_scores(l_c_scores, l_pref_ids)
+    )
+
+
+totals = [0, 0, 0, 0]
+
+means = np.array([0, 0, 0, 0])
+new_means = np.array([1, 1, 1, 1])
+ep = 0.01
+
+i = 0
+while True:
+    if any(abs(new_means - means) > ep) and i > 10:
+        break
+
+    totals = list(map(add, totals, get_metrics(10)))
+    new_means, means = np.array(totals) / (i + 1), new_means
+
+    print(f"iteration: {i}")
+    print(abs(new_means - means))
+    print(new_means)
+    i += 1
+
+
+avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = new_means
+
 
 
 exp_num = 1
 directory = f"experiments/experiment #{exp_num}"
 
 with open(f"{directory}/data", 'w') as f:
-    f.write(f"Coverage scores: {c_scores} \n"
-            f"Mean coverage score: {avg_cov_score} \n"
-            f"Fairness index: {f_ind} \n"
-            f"Mean preferred score: {avg_pref_score} \n"
-            f"Mean regular score: {avg_reg_score} \n")
+    f.write(
+        f"Mean coverage score: {avg_cov_score} \n"
+        f"Fairness index: {avg_fair_ind} \n"
+        f"Mean preferred score: {avg_pref_score} \n"
+        f"Mean regular score: {avg_reg_score} \n")
 
 with open(f"{directory}/settings", 'w') as f:
     settings = uav_gym.envs.env_settings.Settings()
     json.dump(settings.V, f)
+#
+# user_locs, uav_locs = get_locs()
+#
+#
+# def conv_locs(locs):
+#     scaled_locs = gym_utils.scale(locs, s=env.scale, d='up')
+#     return [scaled_locs[::2], scaled_locs[1::2]]
+#
+#
+# user_locs = conv_locs(user_locs)
+# l_uav_locs = list(map(conv_locs, uav_locs))
+#
+# a = animate.AnimatedScatter(user_locs, l_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range,
+#                             sim_size=env.sim_size)
+# plt.show()
 
-from matplotlib import animation
-f = rf"{directory}/animation.mp4"
-writervideo = animation.FFMpegWriter(fps=60)
-a.ani.save(f, writer=writervideo)
+# f = rf"{directory}/animation.mp4"
+# writervideo = animation.FFMpegWriter(fps=60)
+# a.ani.save(f, writer=writervideo)
