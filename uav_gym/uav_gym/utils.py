@@ -27,26 +27,29 @@ def scale(locs_, s: int, d: str) -> np.array:
         raise ValueError(f"Invalid direction, {d}, must be either 'up', or 'down'")
 
 
-def _constrain_user_loc(user_loc, center, std, rng):
+def _constrain_user_loc(user_loc: np.array(np.array([float])), center: np.array(np.array([float])),
+                        std: np.array(np.array([float])), b_factor: int, rng):
     x_u, y_u = user_loc
     x_c, y_c = center
-    if x_c - 3 * std > x_u > x_c + 3 * std:
-        x_u = rng.random.uniform(x_c - 3 * std, x_c + 3 * std)
+    if x_c - b_factor * std > x_u or x_u > x_c + b_factor * std:
+        x_u = rng.uniform(x_c - b_factor * std, x_c + b_factor * std)
 
-    if y_c - 3 * std > y_u > y_c + 3 * std:
-        y_u = rng.random.uniform(y_c - 3 * std, y_c + 3 * std)
+    if y_c - b_factor * std > y_u or y_u > y_c + b_factor * std:
+        y_u = rng.uniform(y_c - b_factor * std, y_c + b_factor * std)
 
     return x_u, y_u
 
 
-def constrain_user_locs(user_locs: np.array(np.array([float])), blob_ids: np.array,
-                        centers: np.array(np.array([float])), stds: np.array(np.array([float])), rng):
+def constrain_user_locs(user_locs: np.array(np.array([[float]])), blob_ids: np.array,
+                        centers: np.array(np.array([[float]])), stds: np.array(np.array([[float]])),
+                        b_factor: int, rng):
     """
-    Constrains a list of user locations to be within 3 standard deviations of the centers
+    Constrains a list of user locations to be within b_factor standard deviations of the centers
     :param user_locs: a list of user locations of the form [[x1, y1], [x2, y2], ..., [xn, yn]]
     :param blob_ids: the blob id of each point eg [0, 1, ..., 0]
     :param centers: the center of the blobs
     :param stds: the standard deviations of the blobs
+    :param b_factor: the maximum number of standard deviations a user can be from the center.
     :param rng: a random number generator
     :return: return a list of user locations of the same form as user_locs
     """
@@ -55,7 +58,7 @@ def constrain_user_locs(user_locs: np.array(np.array([float])), blob_ids: np.arr
     ul3 = np.array(np.split(ul2[:, 1], np.unique(ul2[:, 0], return_index=True)[1][1:]), dtype='object')
 
     ul_constrained = np.array([
-        _constrain_user_loc(user_loc, centers[c_id], stds[c_id], rng)
+        _constrain_user_loc(user_loc, centers[c_id], stds[c_id], b_factor, rng)
         for c_id in range(len(centers))
         for user_loc in ul3[c_id]
     ])
@@ -76,8 +79,8 @@ def get_move(action, dist):
         return [-dist, 0]
 
 
-def inbounds(loc, x_u_bound, y_u_bound, x_l_bound=0, y_l_bound=0):
-    return x_l_bound <= loc[0] <= x_u_bound and y_l_bound <= loc[1] <= y_u_bound
+def inbounds(loc, x_ubound, y_ubound, x_lbound=0, y_lbound=0):
+    return x_lbound <= loc[0] <= x_ubound and y_lbound <= loc[1] <= y_ubound
 
 
 def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: int):
