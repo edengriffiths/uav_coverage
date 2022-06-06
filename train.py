@@ -17,7 +17,7 @@ if not os.path.exists(models_dir):
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 #
-env = gym.make('uav-v0', n_uavs=2)
+env = gym.make('uav-v0')
 env.reset()
 
 model = PPO('MultiInputPolicy', env, verbose=1, tensorboard_log=logdir)
