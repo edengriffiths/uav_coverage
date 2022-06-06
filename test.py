@@ -23,7 +23,7 @@ env = gym.make('uav-v0')
 # env.seed(0)
 env.reset()
 
-model = PPO.load(f"{models_dir}/550000.zip", env=env)
+model = PPO.load(f"{models_dir}/680000.zip", env=env)
 
 
 def get_c_scores(i):
@@ -121,59 +121,68 @@ def get_metrics(n_trials=100) -> Tuple[float, float, float, float]:
     )
 
 
-totals = [0, 0, 0, 0]
-
-means = np.array([0, 0, 0, 0])
-new_means = np.array([1, 1, 1, 1])
-ep = 0.01
-
-i = 0
-while True:
-    if any(abs(new_means - means) > ep) and i > 10:
-        break
-
-    totals = list(map(add, totals, get_metrics(10)))
-    new_means, means = np.array(totals) / (i + 1), new_means
-
-    print(f"iteration: {i}")
-    print(abs(new_means - means))
-    print(new_means)
-    i += 1
+def conv_locs(locs):
+    scaled_locs = gym_utils.scale(locs, s=env.scale, d='up')
+    return [scaled_locs[::2], scaled_locs[1::2]]
 
 
-avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = new_means
+def get_data():
+    totals = [0, 0, 0, 0]
+
+    means = np.array([0, 0, 0, 0])
+    new_means = np.array([1, 1, 1, 1])
+    ep = 0.01
+
+    i = 0
+    while True:
+        if any(abs(new_means - means) > ep) and i > 10:
+            break
+
+        totals = list(map(add, totals, get_metrics(10)))
+        new_means, means = np.array(totals) / (i + 1), new_means
+
+        print(f"iteration: {i}")
+        print(abs(new_means - means))
+        print(new_means)
+        i += 1
+
+    return new_means
 
 
+def write_data(exp_num):
+    avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = get_data()
 
-exp_num = 1
-directory = f"experiments/experiment #{exp_num}"
+    directory = f"experiments/experiment #{exp_num}"
 
-with open(f"{directory}/data", 'w') as f:
-    f.write(
-        f"Mean coverage score: {avg_cov_score} \n"
-        f"Fairness index: {avg_fair_ind} \n"
-        f"Mean preferred score: {avg_pref_score} \n"
-        f"Mean regular score: {avg_reg_score} \n")
+    with open(f"{directory}/data", 'w') as f:
+        f.write(
+            f"Mean coverage score: {avg_cov_score} \n"
+            f"Fairness index: {avg_fair_ind} \n"
+            f"Mean preferred score: {avg_pref_score} \n"
+            f"Mean regular score: {avg_reg_score} \n")
 
-with open(f"{directory}/settings", 'w') as f:
-    settings = uav_gym.envs.env_settings.Settings()
-    json.dump(settings.V, f)
-#
-# user_locs, uav_locs = get_locs()
-#
-#
-# def conv_locs(locs):
-#     scaled_locs = gym_utils.scale(locs, s=env.scale, d='up')
-#     return [scaled_locs[::2], scaled_locs[1::2]]
-#
-#
-# user_locs = conv_locs(user_locs)
-# l_uav_locs = list(map(conv_locs, uav_locs))
-#
-# a = animate.AnimatedScatter(user_locs, l_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range,
-#                             sim_size=env.sim_size)
-# plt.show()
+    with open(f"{directory}/settings", 'w') as f:
+        settings = uav_gym.envs.env_settings.Settings()
+        json.dump(settings.V, f)
 
-# f = rf"{directory}/animation.mp4"
-# writervideo = animation.FFMpegWriter(fps=60)
-# a.ani.save(f, writer=writervideo)
+
+def make_mp4(exp_num):
+    directory = f"experiments/experiment #{exp_num}"
+    user_locs, uav_locs = get_locs()
+
+
+    user_locs = conv_locs(user_locs)
+    l_uav_locs = list(map(conv_locs, uav_locs))
+
+    a = animate.AnimatedScatter(user_locs, l_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range,
+                                sim_size=env.sim_size)
+    plt.show()
+
+    f = rf"{directory}/animation.mp4"
+    writervideo = animation.FFMpegWriter(fps=60)
+    a.ani.save(f, writer=writervideo)
+
+
+if __name__=='__main__':
+    write_data(2)
+    make_mp4(2)
