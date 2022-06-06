@@ -35,7 +35,7 @@ class UAVCoverage(gym.Env):
         self.n_users = self.sg.V['NUM_USERS']
 
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
-        self.n_clusters = 2
+        self.n_clusters = self.np_random.randint(1, 4)
 
         self.cov_scores = None
         self.pref_users = None
@@ -58,7 +58,7 @@ class UAVCoverage(gym.Env):
     def reset(self):
         self.state = {
             'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)]).flatten(),
-            'user_locs': gym_utils.scale(self._gen_user_locs_1(), s=self.scale, d='down').flatten()
+            'user_locs': gym_utils.scale(self._gen_user_locs_0(), s=self.scale, d='down').flatten()
         }
 
         self.cov_scores = np.array([0] * self.n_users)
@@ -138,19 +138,32 @@ class UAVCoverage(gym.Env):
         plt.clf()
 
     def _gen_user_locs_0(self):
-        # TODO: Random cluster_stds?
-        # TODO: How to do random_state? Using sim_size doesn't really make sense.
-        std = float(0.05 * self.sim_size)
-
-        stds = tuple([std] * self.n_clusters)
+        stds = self.get_stds()  # TODO: Should this be uniformly sampled? Why these values?
 
         centers = self.get_centers(stds)
 
-        ul_init, blob_ids = make_blobs(n_samples=self.n_users, centers=centers, cluster_std=stds,
+        densities = self.np_random.uniform(low=0.5, high=1.0, size=self.n_clusters)
+
+        n_samples = (self.n_users * (stds * densities) / sum(stds * densities))
+
+        # the following rounds n_samples to integers while ensuring the sum equals self.n_users.
+        ints = n_samples.astype(int)
+        rems = n_samples - n_samples.astype(int)
+        diff = self.n_users - sum(ints)
+
+        inds = np.argpartition(rems, -diff)[-diff:]
+        m = np.zeros(self.n_clusters).astype(int)
+        m[inds] = 1
+
+        if diff > 0:
+            n_samples = ints + m
+        else:
+            n_samples = ints
+
+        ul_init, blob_ids = make_blobs(n_samples=n_samples, centers=centers, cluster_std=stds,
                                        random_state=self.np_random.randint(2 ** 32 - 1))
 
-        # TODO: Should I sort the user_locs? Would it make it easier to find a solution?
-        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.np_random)
+        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.b_factor, self.np_random)
 
     def _gen_user_locs_1(self):
         """
@@ -161,13 +174,25 @@ class UAVCoverage(gym.Env):
 
         return np.array(sorted(ul_locs.tolist()))
 
+    def get_stds(self):
+        samples = self.np_random.poisson(6, size=10000).astype(float)
+        samples *= self.sim_size / 2 / 15 / self.b_factor
+        samples += 50
+
+        stds = self.np_random.choice(samples, size=self.n_clusters)
+
+        while any(stds * self.b_factor > self.sim_size / 2) or any(stds == 0):
+            stds = self.np_random.choice(samples, size=self.n_clusters)
+
+        return stds
+
     def get_centers(self, stds: Tuple[float]):
-        assert all([self.b_factor * std < self.sim_size for std in stds])
+        assert all([self.b_factor * std <= self.sim_size / 2 for std in stds])
 
         centers = [
-            [self.np_random.uniform(0 + 3 * std, self.sim_size - 3 * std)
-             for std in stds]
-            for _ in range(self.n_clusters)
+            [self.np_random.uniform(self.b_factor * std, self.sim_size - self.b_factor * std)
+             for _ in range(2)]
+            for std in stds
         ]
 
         return centers
@@ -254,7 +279,6 @@ if __name__ == '__main__':
         # Random action
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
-        print(obs)
         print(reward)
         if done:
             obs = env.reset()
