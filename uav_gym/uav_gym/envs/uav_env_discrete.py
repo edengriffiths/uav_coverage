@@ -264,6 +264,25 @@ class UAVCoverage(gym.Env):
 
         return total_score / self.n_users
 
+    def reward_4(self, uav_locs, maybe_uav_locs, user_locs):
+        reward = self.reward_3(uav_locs, user_locs)
+
+        graph = gym_utils.make_graph_from_locs(uav_locs, self.home_loc, self.comm_range)
+        dconnect_count = gym_utils.get_disconnected_count(graph)
+
+        p_dconnect = self.sg.V['P_DISCONNECT'] * reward * dconnect_count
+
+        outside_count = sum(
+            [gym_utils.inbounds(loc, x_ubound=self.sim_size, y_ubound=self.sim_size)
+             for loc in [maybe_uav_locs[i:i + 2]
+                         for i in range(len(maybe_uav_locs), 2)]
+             ]
+        )
+
+        p_outside = self.sg.V['P_OUT_BOUNDS'] * reward * outside_count
+
+        return reward - p_dconnect - p_outside
+
 
 if __name__ == '__main__':
     env = UAVCoverage()
