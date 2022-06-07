@@ -1270,7 +1270,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/rl-baselines3-zoo/logs/ppo/report_MountainCar-v0_1000-trials-50000-tpe-median_1652852557.csv">
+        <entry key="/rl-baselines3-zoo/logs/ppo/report_uav-v0_500-trials-100000-tpe-median_1653545669.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_1/0.monitor.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -1278,6 +1285,1014 @@
           </value>
         </entry>
         <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_10/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_11/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_12/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_13/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_14/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_15/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_16/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_17/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_18/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_19/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_2/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_20/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_3/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_5/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_6/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_7/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_8/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/0.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/1.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/2.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/3.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/4.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/5.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/6.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_9/7.monitor.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
