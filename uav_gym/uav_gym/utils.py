@@ -1,4 +1,3 @@
-import numpy as np
 from functools import reduce
 from scipy.spatial import distance
 import numpy as np
@@ -113,7 +112,7 @@ def _get_score(dist: float, cov_range: float, p_factor: float) -> float:
 
 
 def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_factor: float) -> np.array([float]):
-    # for each UAV get distance to users
+    # for each UAV get distance to each user
     dist_to_users = distance.cdist(uav_locs, user_locs, 'euclidean')
 
     # get the minimum distance to a UAV for each user
