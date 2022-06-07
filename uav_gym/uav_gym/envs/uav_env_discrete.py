@@ -159,14 +159,7 @@ class UAVCoverage(gym.Env):
         ul_init, blob_ids = make_blobs(n_samples=n_samples, centers=centers, cluster_std=stds,
                                        random_state=self.np_random.randint(2 ** 32 - 1))
 
-        return gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.b_factor, self.np_random)
-
-    def _gen_user_locs_1(self):
-        """
-        User locations are sorted
-        :return:
-        """
-        ul_locs = self._gen_user_locs_0()
+        ul_locs = gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.b_factor, self.np_random)
 
         return np.array(sorted(ul_locs.tolist()))
 
