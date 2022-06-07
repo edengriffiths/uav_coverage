@@ -37,7 +37,6 @@ class UAVCoverage(gym.Env):
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
         self.n_clusters = self.np_random.randint(1, 4)
 
-        self.cov_scores = None
         self.pref_users = None
         self.pref_factor = 2
 
@@ -46,7 +45,7 @@ class UAVCoverage(gym.Env):
         self.action_space = self._action_space_0()
 
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
-        self.observation_space = self._observation_space_0()
+        self.observation_space = self._observation_space_1()
 
         self.state = None
         self.timestep = 0
@@ -58,10 +57,10 @@ class UAVCoverage(gym.Env):
     def reset(self):
         self.state = {
             'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)]).flatten(),
-            'user_locs': gym_utils.scale(self._gen_user_locs_0(), s=self.scale, d='down').flatten()
+            'user_locs': gym_utils.scale(self._gen_user_locs_0(), s=self.scale, d='down').flatten(),
+            'cov_scores': np.array([0] * self.n_users)
         }
 
-        self.cov_scores = np.array([0] * self.n_users)
         self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
 
         self.timestep = 0
@@ -98,18 +97,15 @@ class UAVCoverage(gym.Env):
 
         # update state
         self.state['uav_locs'] = gym_utils.scale(np.array(new_locs.flatten(), dtype=np.float32), self.scale, 'down')
-
-        # update cov_scores
-        self.cov_scores += gym_utils.get_coverage_state(new_locs, user_locs, self.cov_range)
+        self.state['cov_scores'] += gym_utils.get_coverage_state(new_locs, user_locs, self.cov_range)
 
         # ---
-        # NOTE: reward calc needs to come after self.cov_scores update.
-        # calculate reward = sum of all scores
-        reward = self.reward_1(new_locs, user_locs)
+        # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
+        reward = self.reward_4(maybe_locs)
 
         # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
-        if self.timestep >= 1800:
+        if self.timestep >= self.sg.V['MAX_TIMESTEPS']:
             done = True
 
         info = {}
@@ -210,6 +206,16 @@ class UAVCoverage(gym.Env):
                 np.array([self.sim_size // self.scale + 1] * 2 * self.n_users, dtype=np.int32)),
         })
 
+    def _observation_space_1(self):
+        return gym.spaces.Dict({
+            'uav_locs': gym.spaces.MultiDiscrete(
+                np.array([self.sim_size // self.scale + 1] * 2 * self.n_uavs, dtype=np.int32)),
+            'user_locs': gym.spaces.MultiDiscrete(
+                np.array([self.sim_size // self.scale + 1] * 2 * self.n_users, dtype=np.int32)),
+            'cov_scores': gym.spaces.MultiDiscrete(
+                np.array([self.sg.V['MAX_TIMESTEPS']] * self.n_users, dtype=np.int32)),
+        })
+
     def reward_0(self, uav_locs, user_locs):
         """
         Basic
@@ -225,31 +231,14 @@ class UAVCoverage(gym.Env):
 
         return total_score / self.n_users
 
-    def reward_1(self, uav_locs, user_locs):
+    def reward_1(self):
         """
-        Basic + punishment for disconnection
+        Includes user scores, fairness, and user prioritisation
         """
-        total_score = sum(
-            gym_utils.get_scores(
-                uav_locs,
-                user_locs,
-                self.cov_range,
-                p_factor=self.sg.V['P_OUTSIDE_COV']
-            )
-        )
-        reward = total_score / self.n_users
+        uav_locs = self.state['uav_locs']
+        user_locs = self.state['user_locs']
+        cov_scores = self.state['cov_scores']
 
-        graph = gym_utils.make_graph_from_locs(uav_locs, self.home_loc, self.comm_range)
-        discon_count = gym_utils.get_disconnected_count(graph)
-
-        return reward - 1000 * reward * discon_count
-
-    def reward_2(self, uav_locs, user_locs):
-        f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
-
-        return f_idx * self.reward_0(uav_locs, user_locs)
-
-    def reward_3(self, uav_locs, user_locs):
         scores = gym_utils.get_scores(
             uav_locs,
             user_locs,
@@ -257,29 +246,36 @@ class UAVCoverage(gym.Env):
             p_factor=self.sg.V['P_OUTSIDE_COV']
         )
 
+        f_idx = gym_utils.fairness_idx(cov_scores / self.timestep)
+
         # increase the scores of the preferred users by a factor of self.pref_factor.
         scaled_scores = scores + (self.pref_factor - 1) * self.pref_users * scores
 
-        total_score = sum(scaled_scores)
+        mean_score = sum(scaled_scores) / self.n_users
 
-        return total_score / self.n_users
+        return f_idx * mean_score
 
-    def reward_4(self, uav_locs, maybe_uav_locs, user_locs):
-        reward = self.reward_3(uav_locs, user_locs)
+    def reward_2(self, maybe_uav_locs):
+        """
+        Include constant penalty for disconnecting or going out of bounds
+        :param maybe_uav_locs: positions the UAVs tried to move to.
+        """
+        uav_locs = self.state['uav_locs']
+
+        reward = self.reward_1()
 
         graph = gym_utils.make_graph_from_locs(uav_locs, self.home_loc, self.comm_range)
         dconnect_count = gym_utils.get_disconnected_count(graph)
 
-        p_dconnect = self.sg.V['P_DISCONNECT'] * reward * dconnect_count
+        p_dconnect = self.sg.V['P_DISCONNECT'] * dconnect_count
 
         outside_count = sum(
             [gym_utils.inbounds(loc, x_ubound=self.sim_size, y_ubound=self.sim_size)
-             for loc in [maybe_uav_locs[i:i + 2]
-                         for i in range(len(maybe_uav_locs), 2)]
+             for loc in [gym_utils.conv_locs(maybe_uav_locs)]
              ]
         )
 
-        p_outside = self.sg.V['P_OUT_BOUNDS'] * reward * outside_count
+        p_outside = self.sg.V['P_OUT_BOUNDS'] * outside_count
 
         return reward - p_dconnect - p_outside
 
