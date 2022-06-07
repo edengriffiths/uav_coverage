@@ -10,6 +10,7 @@ class Settings(object):
             'SIM_SIZE': 1000,  # keep sim_size divisible by scale
             'SCALE': 50,  # metres per unit
             'HOME_LOC': (0, 0),
+            'MAX_TIMESTEPS': 1800,
 
             # ----
             # USER SETTINGS
@@ -27,8 +28,8 @@ class Settings(object):
             # ----
             # REWARD
             'P_OUTSIDE_COV': 0.8,
-            'P_DISCONNECT': 1000,
-            'P_OUT_BOUNDS': 1000
+            'P_DISCONNECT': 10,
+            'P_OUT_BOUNDS': 10
         }
 
         self.V['DIST'] = self.V['SCALE']
