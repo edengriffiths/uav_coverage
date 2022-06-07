@@ -1,4 +1,4 @@
-from uav_gym.uav_gym.envs.uav_env_v6 import SimpleUAVEnv as Env_v6
+from uav_gym.uav_gym.trial_envs.uav_env_v6 import SimpleUAVEnv as Env_v6
 from stable_baselines3 import PPO
 import numpy as np
 import matplotlib.pyplot as plt
