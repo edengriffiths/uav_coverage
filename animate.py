@@ -48,7 +48,7 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=len(self.uav_locs),
-                                           interval=1000,
+                                           interval=100,
                                            repeat=False)
 
     def setup(self):
