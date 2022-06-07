@@ -12,21 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import json
 
-# models_dir = "rl-baselines3-zoo/logs/ppo"
-#
-# model = PPO.load(f"{models_dir}/uav-v0_13/best_model.zip", env=env)
 
-env_v = 'v5'
-models_dir = f"models/{env_v}/PPO"
-
-env = gym.make('uav-v0')
-# env.seed(0)
-env.reset()
-
-model = PPO.load(f"{models_dir}/680000.zip", env=env)
-
-
-def get_c_scores(i):
+def get_c_scores(i, env, model):
     print(f"trial: {i}")
 
     obs = env.reset()
@@ -39,7 +26,7 @@ def get_c_scores(i):
     return c_scores, env.pref_users
 
 
-def get_locs():
+def get_locs(env, model):
     uav_locs = []
 
     obs = env.reset()
@@ -106,11 +93,11 @@ def mean_reg_scores(l_c_scores: np.array([float]), pref_ids: np.array([0 | 1])) 
         ).mean()
 
 
-def get_metrics(n_trials=100) -> Tuple[float, float, float, float]:
+def get_metrics(env, model, n_trials=100) -> Tuple[float, float, float, float]:
     l_c_scores, l_pref_ids = map(np.array,
-                              map(list,
-                                  zip(*[get_c_scores(i)
-                                        for i in range(n_trials)])))
+                                 map(list,
+                                     zip(*[get_c_scores(i, env, model)
+                                           for i in range(n_trials)])))
     n_users = len(l_pref_ids[0])
 
     return (
@@ -135,10 +122,10 @@ def get_data():
 
     i = 0
     while True:
-        if any(abs(new_means - means) > ep) and i > 10:
+        if not any(abs(new_means - means) > ep): # and i > 10:
             break
 
-        totals = list(map(add, totals, get_metrics(10)))
+        totals = list(map(add, totals, get_metrics(env, model, 10)))
         new_means, means = np.array(totals) / (i + 1), new_means
 
         print(f"iteration: {i}")
@@ -166,23 +153,36 @@ def write_data(exp_num):
         json.dump(settings.V, f)
 
 
-def make_mp4(exp_num):
+def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
-    user_locs, uav_locs = get_locs()
-
+    user_locs, uav_locs = get_locs(env, model)
 
     user_locs = conv_locs(user_locs)
     l_uav_locs = list(map(conv_locs, uav_locs))
 
     a = animate.AnimatedScatter(user_locs, l_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range,
                                 sim_size=env.sim_size)
-    plt.show()
+    # plt.show()
 
     f = rf"{directory}/animation.mp4"
     writervideo = animation.FFMpegWriter(fps=60)
     a.ani.save(f, writer=writervideo)
 
 
-if __name__=='__main__':
-    write_data(2)
-    make_mp4(2)
+if __name__ == '__main__':
+    # models_dir = "rl-baselines3-zoo/logs/ppo"
+    #
+    # model = PPO.load(f"{models_dir}/uav-v0_13/best_model.zip", env=env)
+
+    env_v = 'v5'
+    models_dir = f"models/{env_v}/PPO"
+
+    env = gym.make('uav-v0')
+    # env.seed(0)
+    env.reset()
+
+    model = PPO.load(f"{models_dir}/800000.zip", env=env)
+
+    exp_num = 3
+    write_data(exp_num)
+    make_mp4(exp_num, env, model)

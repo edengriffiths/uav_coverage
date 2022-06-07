@@ -1,0 +1,7 @@
+Users: unsorted
+Reward: fairness and user_scores with penalties for disconnecting and exceeding boundary
+
+penalties are a multiple of a reward.
+
+theorise that this incentivises not getting a high reward from providing coverage because if disconnection occurs
+penalty will be higher.
