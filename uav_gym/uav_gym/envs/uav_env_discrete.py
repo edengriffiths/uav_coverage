@@ -2,10 +2,14 @@ from typing import Tuple
 
 import gym
 from gym.utils import seeding
+# from uav_gym.uav_gym.envs.env_settings import Settings
+# import uav_gym.uav_gym.utils as gym_utils
+
 from uav_gym.envs.env_settings import Settings
+import uav_gym.utils as gym_utils
+
 import numpy as np
 from sklearn.datasets import make_blobs
-import uav_gym.utils as gym_utils
 import matplotlib.pyplot as plt
 
 
@@ -56,8 +60,9 @@ class UAVCoverage(gym.Env):
 
     def reset(self):
         self.state = {
-            'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)]).flatten(),
-            'user_locs': gym_utils.scale(self._gen_user_locs_0(), s=self.scale, d='down').flatten(),
+            'uav_locs': gym_utils.conv_locs([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)],
+                                            s=self.scale, from_state=False),
+            'user_locs': gym_utils.conv_locs(self._gen_user_locs().tolist(), s=self.scale, from_state=False),
             'cov_scores': np.array([0] * self.n_users)
         }
 
@@ -71,13 +76,10 @@ class UAVCoverage(gym.Env):
         done = False
         self.timestep += 1
 
-        # unpack state and convert units to metres.
-        uav_locs_ = gym_utils.scale(self.state['uav_locs'], self.scale, 'up')
-        user_locs_ = gym_utils.scale(self.state['user_locs'], self.scale, 'up')
-
         # convert the lists of locs of the form [x1, y1, x2, y2] to [[x1, y1], [x2, y2]]
-        uav_locs = gym_utils.conv_locs(uav_locs_)
-        user_locs = gym_utils.conv_locs(user_locs_)
+        # unpack state and convert units to metres.
+        uav_locs = gym_utils.conv_locs(self.state['uav_locs'].tolist(), self.scale, from_state=True)
+        user_locs = gym_utils.conv_locs(self.state['user_locs'].tolist(), self.scale, from_state=True)
 
         distances = np.array([self.dist] * len(action))
         # ---
@@ -93,17 +95,16 @@ class UAVCoverage(gym.Env):
              else
              uav_locs[i]
              for i in range(len(moves))],
-            dtype=np.float32)
+            dtype=int)
 
         # update state
-        self.state['uav_locs'] = gym_utils.scale(np.array(new_locs.flatten(), dtype=np.float32), self.scale, 'down')
-        self.state['cov_scores'] += gym_utils.get_coverage_state(new_locs, user_locs, self.cov_range)
+        self.state['uav_locs'] = gym_utils.conv_locs(new_locs.tolist(), self.scale, from_state=False)
+        self.state['cov_scores'] += gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
 
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
-        reward = self.reward_4(maybe_locs)
+        reward = self.reward_2(maybe_locs)
 
-        # TODO: Check this is the correct value and that it agrees with animation.
         # stop after 30 minutes where each timestep is 1 second.
         if self.timestep >= self.sg.V['MAX_TIMESTEPS']:
             done = True
@@ -113,8 +114,8 @@ class UAVCoverage(gym.Env):
         return self.state, reward, done, info
 
     def render(self, mode="human"):
-        uav_locs_ = gym_utils.scale(self.state['uav_locs'], self.scale, 'up')
-        user_locs_ = gym_utils.scale(self.state['user_locs'], self.scale, 'up')
+        uav_locs_ = gym_utils.scale(self.state['uav_locs'].tolist(), self.scale, from_state=True)
+        user_locs_ = gym_utils.scale(self.state['user_locs'].tolist(), self.scale, from_state=True)
 
         uav_locs = [uav_locs_[::2], uav_locs_[1::2]]
         user_locs = [user_locs_[::2], user_locs_[1::2]]
@@ -133,7 +134,7 @@ class UAVCoverage(gym.Env):
         plt.show()
         plt.clf()
 
-    def _gen_user_locs_0(self):
+    def _gen_user_locs(self):
         stds = self.get_stds()  # TODO: Should this be uniformly sampled? Why these values?
 
         centers = self.get_centers(stds)
@@ -159,9 +160,10 @@ class UAVCoverage(gym.Env):
         ul_init, blob_ids = make_blobs(n_samples=n_samples, centers=centers, cluster_std=stds,
                                        random_state=self.np_random.randint(2 ** 32 - 1))
 
-        ul_locs = gym_utils.constrain_user_locs(ul_init, blob_ids, centers, stds, self.b_factor, self.np_random)
+        ul_locs = gym_utils.constrain_user_locs(ul_init.tolist(), blob_ids, centers, stds, self.b_factor, self.np_random)\
+            .round(0).astype(int).tolist()
 
-        return np.array(sorted(ul_locs.tolist()))
+        return np.array(sorted(ul_locs))
 
     def get_stds(self):
         samples = self.np_random.poisson(6, size=10000).astype(float)
@@ -228,13 +230,13 @@ class UAVCoverage(gym.Env):
         """
         Includes user scores, fairness, and user prioritisation
         """
-        uav_locs = self.state['uav_locs']
-        user_locs = self.state['user_locs']
+        uav_locs = gym_utils.conv_locs(self.state['uav_locs'].tolist(), s=self.scale, from_state=True)
+        user_locs = gym_utils.conv_locs(self.state['user_locs'].tolist(), s=self.scale, from_state=True)
         cov_scores = self.state['cov_scores']
 
         scores = gym_utils.get_scores(
-            uav_locs,
-            user_locs,
+            uav_locs.tolist(),
+            user_locs.tolist(),
             self.cov_range,
             p_factor=self.sg.V['P_OUTSIDE_COV']
         )
@@ -253,18 +255,18 @@ class UAVCoverage(gym.Env):
         Include constant penalty for disconnecting or going out of bounds
         :param maybe_uav_locs: positions the UAVs tried to move to.
         """
-        uav_locs = self.state['uav_locs']
+        uav_locs = gym_utils.conv_locs(self.state['uav_locs'].tolist(), s=self.scale, from_state=True)
 
         reward = self.reward_1()
 
-        graph = gym_utils.make_graph_from_locs(uav_locs, self.home_loc, self.comm_range)
+        graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), self.home_loc, self.comm_range)
         dconnect_count = gym_utils.get_disconnected_count(graph)
 
         p_dconnect = self.sg.V['P_DISCONNECT'] * dconnect_count
 
-        outside_count = sum(
+        outside_count = self.n_uavs - sum(
             [gym_utils.inbounds(loc, x_ubound=self.sim_size, y_ubound=self.sim_size)
-             for loc in [gym_utils.conv_locs(maybe_uav_locs)]
+             for loc in maybe_uav_locs
              ]
         )
 

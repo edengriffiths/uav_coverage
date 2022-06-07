@@ -2,32 +2,57 @@ from functools import reduce
 from scipy.spatial import distance
 import numpy as np
 import networkx as nx
-import pandas as pd
+
+from typing import Union, List
+from typeguard import check_type
+
+StateLocs = List[int]
+RegLocs = List[List[int]]
+RegLocsFloat = List[List[float]]
 
 
-def conv_locs(locs):
-    return np.array([locs[x:x + 2] for x in range(0, len(locs), 2)])
-
-
-def scale(locs_, s: int, d: str) -> np.array:
+def scale(locs_: Union[RegLocs, StateLocs], s: int, from_state: bool) -> np.array:
     """
     Rescale a list of locations
-    :param locs: 1D np.array of locations.
+    :param locs_: 1D np.array of locations.
     :param s: scaling factor
-    :param d: the direction of scale: 'up' (increase the fidelity), 'down' (decrease the fidelity).
+    :param from_state: the direction of scale: true (increase the fidelity), false (decrease the fidelity).
     :return: scaled locs or raise a ValueError if incorrect direction using.
     """
-    locs = np.copy(locs_)
-    if d == 'up':
+    locs = np.copy(np.array(locs_))
+
+    if from_state:
         return locs * s
-    elif d == 'down':
-        return (locs / s).round(0)
     else:
-        raise ValueError(f"Invalid direction, {d}, must be either 'up', or 'down'")
+        return (locs / s).round(0).astype(int)
 
 
-def _constrain_user_loc(user_loc: np.array(np.array([float])), center: np.array(np.array([float])),
-                        std: np.array(np.array([float])), b_factor: int, rng):
+def conv_locs(locs: Union[RegLocs, StateLocs], s: int, from_state: bool) -> np.array:
+    """
+    Convert the locations of users and UAVs as seen in the state, [x1, y1, x2, y2] to the form [[x1, y1], [x2, y2]]
+    """
+
+    if from_state:
+        # assert locs.shape == (len(locs),), "Incorrect shape for locs"
+        check_type("locs", locs, StateLocs)
+
+        return scale([locs[x:x + 2] for x in range(0, len(locs), 2)],
+                     s, from_state)
+    else:
+        # assert locs.shape == (len(locs), 2), "Incorrect shape for locs"
+        try:
+            check_type("locs", locs, RegLocs)
+        except TypeError:
+            print(locs)
+
+        check_type("locs", locs, RegLocs)
+
+        return scale(locs, s, from_state).flatten()
+
+
+def _constrain_user_loc(user_loc: [float], center: np.array([float]),
+                        std: np.array([float]), b_factor: int, rng):
+
     x_u, y_u = user_loc
     x_c, y_c = center
     if x_c - b_factor * std > x_u or x_u > x_c + b_factor * std:
@@ -39,8 +64,8 @@ def _constrain_user_loc(user_loc: np.array(np.array([float])), center: np.array(
     return x_u, y_u
 
 
-def constrain_user_locs(user_locs: np.array(np.array([[float]])), blob_ids: np.array,
-                        centers: np.array(np.array([[float]])), stds: np.array(np.array([[float]])),
+def constrain_user_locs(user_locs: RegLocsFloat, blob_ids: np.array,
+                        centers: np.array([[float]]), stds: np.array([[float]]),
                         b_factor: int, rng):
     """
     Constrains a list of user locations to be within b_factor standard deviations of the centers
@@ -52,6 +77,10 @@ def constrain_user_locs(user_locs: np.array(np.array([[float]])), blob_ids: np.a
     :param rng: a random number generator
     :return: return a list of user locations of the same form as user_locs
     """
+    check_type("user_locs", user_locs, RegLocsFloat)
+
+    user_locs = np.array(user_locs)
+
     ul1 = np.array(list(zip(blob_ids, user_locs)), dtype='object')
     ul2 = ul1[ul1[:, 0].argsort()]
     ul3 = np.array(np.split(ul2[:, 1], np.unique(ul2[:, 0], return_index=True)[1][1:]), dtype='object')
@@ -78,7 +107,7 @@ def get_move(action, dist):
         return [-dist, 0]
 
 
-def inbounds(loc, x_ubound, y_ubound, x_lbound=0, y_lbound=0):
+def inbounds(loc: [int], x_ubound, y_ubound, x_lbound=0, y_lbound=0):
     return x_lbound <= loc[0] <= x_ubound and y_lbound <= loc[1] <= y_ubound
 
 
@@ -87,7 +116,10 @@ def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_rang
     return dist_to_users <= cov_range
 
 
-def get_coverage_state(uav_locs: np.array, user_locs: np.array, cov_range: int):
+def get_coverage_state(uav_locs: RegLocs, user_locs: RegLocs, cov_range: int):
+    check_type("uav_locs", user_locs, RegLocs)
+    check_type("user_locs", user_locs, RegLocs)
+
     coverage_states = [get_coverage_state_from_uav(uav_loc, user_locs, cov_range) for uav_loc in uav_locs]
 
     return reduce(lambda acc, x: acc | x, coverage_states)
@@ -111,7 +143,10 @@ def _get_score(dist: float, cov_range: float, p_factor: float) -> float:
         return p_factor * 1 / (1 + dist)
 
 
-def get_scores(uav_locs: np.array, user_locs: np.array, cov_range: float, p_factor: float) -> np.array([float]):
+def get_scores(uav_locs: RegLocs, user_locs: RegLocs, cov_range: float, p_factor: float) -> np.array([float]):
+    check_type("uav_locs", user_locs, RegLocs)
+    check_type("user_locs", user_locs, RegLocs)
+
     # for each UAV get distance to each user
     dist_to_users = distance.cdist(uav_locs, user_locs, 'euclidean')
 
@@ -132,18 +167,23 @@ def fairness_idx(cov_scores: np.array([float])) -> float:
     :return: a float between 0 and 1 that represents the fairness of the coverage.
     """
     n_users = len(cov_scores)
-    return sum(cov_scores) ** 2 / (n_users * sum(cov_scores ** 2))
+    if any(cov_scores):
+        return sum(cov_scores) ** 2 / (n_users * sum(cov_scores ** 2))
+    else:
+        return 1
 
 
-def make_graph_from_locs(uav_locs, home_loc, comm_range):
+def make_graph_from_locs(uav_locs: RegLocs, home_loc: List[int], comm_range: int):
     """
     :param uav_locs: np.ndarray of uav location [[x1, y1], [x2, y2],..., [xn, yn]
     :param home_loc: location of the home base [x, y]
     :param comm_range: an integer that represents the communication range of a UAV.
     :return: a networkx graph of the UAVs and home with edges between UAVs that are within the communication range.
     """
+    check_type("uav_locs", uav_locs, RegLocs)
+
     # TODO: Can the home base have a larger range? Can it get data from UAV?
-    all_locs = [home_loc] + uav_locs
+    all_locs = np.array([home_loc] + uav_locs)
 
     nodes = dict(enumerate(all_locs))
     g = nx.Graph()
