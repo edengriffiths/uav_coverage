@@ -7,21 +7,26 @@ from matplotlib import animation
 from matplotlib.collections import LineCollection
 import matplotlib.patches
 
-from typing import Tuple
+from typing import Tuple, List, Union
 
 from uav_gym.utils import make_graph_from_locs
 
+Loc = List[Union[np.float32]]
+Locs = List[Loc]
+
 
 class AnimatedScatter(object):
-    def __init__(self, user_locs, uav_locs, cov_range, comm_range, sim_size):
-        self.uav_locs = uav_locs
+    def __init__(self, user_locs: Locs, l_uav_locs: List[Locs], cov_range: int, comm_range: int, sim_size: int):
         self.user_locs = user_locs
+        self.l_uav_locs = l_uav_locs
         self.cov_range = cov_range
         self.comm_range = comm_range
         self.sim_size = sim_size
 
-
+        self.n_timesteps = len(l_uav_locs)
         self.time_per_epoch = 1
+
+        self.n_uavs = len(l_uav_locs[0])
 
         # set up figures and axes
         # ---
@@ -42,12 +47,12 @@ class AnimatedScatter(object):
         # ---
         self.rect = matplotlib.patches.Rectangle((0, 0), 50, 20)
 
-        self.circles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(len(self.uav_locs[0][0]))]
+        self.circles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(self.n_uavs)]
 
         # set up animation
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
-                                           frames=len(self.uav_locs),
+                                           frames=self.n_timesteps,
                                            interval=100,
                                            repeat=False)
 
@@ -55,11 +60,11 @@ class AnimatedScatter(object):
         """
         Initialise the figure for the animation
         """
-        x_uavs = self.uav_locs[0][0]
-        y_uavs = self.uav_locs[0][1]
+        x_uavs, y_uavs = list(zip(*self.l_uav_locs[0]))
+        user_locs = list(zip(*self.user_locs))
 
         # add users
-        self.users = self.ax.scatter(self.user_locs[0], self.user_locs[1], s=20, c='gray')
+        self.users = self.ax.scatter(user_locs[0], user_locs[1], s=20, c='gray')
 
         # add UAVs
         self.uavs = self.ax.scatter(x_uavs, y_uavs, s=20, c='r')
@@ -69,15 +74,14 @@ class AnimatedScatter(object):
             self.ax.add_patch(circle)
 
         # add connection links between UAVs
-        c = get_connections(x_uavs, y_uavs, comm_range=self.comm_range)
+        c = get_connections(self.l_uav_locs[0], comm_range=self.comm_range)
         lc = LineCollection(c, linestyles=':')
         self.uav_connection = self.ax.add_collection(lc)
 
         return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
 
     def update(self, i):
-        x_uavs = self.uav_locs[i][0]
-        y_uavs = self.uav_locs[i][1]
+        x_uavs, y_uavs = list(zip(*self.l_uav_locs[i]))
 
         # Update time
         self.title.set_text(f"Time Elapsed: {time.strftime(('%H:%M:%S'), time.gmtime(i * self.time_per_epoch))}")
@@ -90,7 +94,7 @@ class AnimatedScatter(object):
             circle.center = (x, y)
 
         # Update links between UAVs
-        c = get_connections(x_uavs, y_uavs, comm_range=self.comm_range)
+        c = get_connections(self.l_uav_locs[i], comm_range=self.comm_range)
         self.uav_connection.set_segments(c)
 
         return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
@@ -111,21 +115,28 @@ def get_locs_of_connected(g: nx.Graph):
     return locs
 
 
-def get_connections(x_uavs, y_uavs, comm_range):
-    # TODO: Read these values from somewhere
-    g = make_graph_from_locs(list(zip(x_uavs, y_uavs)), home_loc=[0, 0], comm_range=comm_range)
+def get_connections(uav_locs, comm_range):
+    g = make_graph_from_locs(uav_locs.tolist(), home_loc=[0.0, 0.0], comm_range=comm_range)
     return get_locs_of_connected(g)
 
 
 if __name__ == '__main__':
+    # uav_locs = [
+    #     [[0, 0], [0, 0]],
+    #     [[100, 0], [100, 0]],
+    #     [[200, 0], [200, 0]],
+    # ]
+
     uav_locs = [
-        [[0, 0], [0, 0]],
-        [[100, 0], [100, 0]],
-        [[200, 0], [200, 0]],
+        [
+            [0, 0], [0, 0], [0, 0]
+        ],
+        [
+            [50, 0], [0, 50], [0, 0]
+        ]
     ]
 
-    user_locs = [[], []]
+    user_locs = [[10, 20], [10, 20]]
 
     a = AnimatedScatter(user_locs, uav_locs, cov_range=200, comm_range=500, sim_size=1000)
     plt.show()
-
