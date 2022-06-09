@@ -6,52 +6,12 @@ import networkx as nx
 from typing import Union, List
 from typeguard import check_type
 
-StateLocs = List[int]
-RegLocs = List[List[int]]
-RegLocsFloat = List[List[float]]
+Loc = List[Union[float, np.float32]]
+RegLocs = List[Loc]
 
 
-def scale(locs_: Union[RegLocs, StateLocs], s: int, from_state: bool) -> np.array:
-    """
-    Rescale a list of locations
-    :param locs_: 1D np.array of locations.
-    :param s: scaling factor
-    :param from_state: the direction of scale: true (increase the fidelity), false (decrease the fidelity).
-    :return: scaled locs or raise a ValueError if incorrect direction using.
-    """
-    locs = np.copy(np.array(locs_))
-
-    if from_state:
-        return locs * s
-    else:
-        return (locs / s).round(0).astype(int)
-
-
-def conv_locs(locs: Union[RegLocs, StateLocs], s: int, from_state: bool) -> np.array:
-    """
-    Convert the locations of users and UAVs as seen in the state, [x1, y1, x2, y2] to the form [[x1, y1], [x2, y2]]
-    """
-
-    if from_state:
-        # assert locs.shape == (len(locs),), "Incorrect shape for locs"
-        check_type("locs", locs, StateLocs)
-
-        return scale([locs[x:x + 2] for x in range(0, len(locs), 2)],
-                     s, from_state)
-    else:
-        # assert locs.shape == (len(locs), 2), "Incorrect shape for locs"
-        try:
-            check_type("locs", locs, RegLocs)
-        except TypeError:
-            print(locs)
-
-        check_type("locs", locs, RegLocs)
-
-        return scale(locs, s, from_state).flatten()
-
-
-def _constrain_user_loc(user_loc: [float], center: np.array([float]),
-                        std: np.array([float]), b_factor: int, rng):
+def _constrain_user_loc(user_loc: Loc, center: np.ndarray,
+                        std: np.ndarray, b_factor: int, rng):
 
     x_u, y_u = user_loc
     x_c, y_c = center
@@ -64,8 +24,8 @@ def _constrain_user_loc(user_loc: [float], center: np.array([float]),
     return x_u, y_u
 
 
-def constrain_user_locs(user_locs: RegLocsFloat, blob_ids: np.array,
-                        centers: np.array([[float]]), stds: np.array([[float]]),
+def constrain_user_locs(user_locs: RegLocs, blob_ids: np.ndarray,
+                        centers: np.ndarray, stds: np.ndarray,
                         b_factor: int, rng):
     """
     Constrains a list of user locations to be within b_factor standard deviations of the centers
@@ -77,7 +37,7 @@ def constrain_user_locs(user_locs: RegLocsFloat, blob_ids: np.array,
     :param rng: a random number generator
     :return: return a list of user locations of the same form as user_locs
     """
-    check_type("user_locs", user_locs, RegLocsFloat)
+    check_type("user_locs", user_locs, RegLocs)
 
     user_locs = np.array(user_locs)
 
@@ -94,7 +54,7 @@ def constrain_user_locs(user_locs: RegLocsFloat, blob_ids: np.array,
     return ul_constrained
 
 
-def get_move(action, dist):
+def get_move(action: int, dist: int) -> List[int]:
     if action == 0:
         return [0, 0]
     elif action == 1:
@@ -107,11 +67,11 @@ def get_move(action, dist):
         return [-dist, 0]
 
 
-def inbounds(loc: [int], x_ubound, y_ubound, x_lbound=0, y_lbound=0):
+def inbounds(loc: np.ndarray, x_ubound, y_ubound, x_lbound=0, y_lbound=0):
     return x_lbound <= loc[0] <= x_ubound and y_lbound <= loc[1] <= y_ubound
 
 
-def get_coverage_state_from_uav(uav_loc: np.array, user_locs: np.array, cov_range: int):
+def get_coverage_state_from_uav(uav_loc: [float], user_locs: np.array, cov_range: int):
     dist_to_users = distance.cdist([uav_loc], user_locs, 'euclidean').flatten()
     return dist_to_users <= cov_range
 

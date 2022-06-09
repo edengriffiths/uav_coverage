@@ -36,7 +36,7 @@ def get_locs(env, model):
         obs, rewards, done, info = env.step(action)
         uav_locs.append(obs['uav_locs'])
 
-    return obs['user_locs'], uav_locs
+    return obs['user_locs'], np.array(uav_locs)
 
 
 def mean_cov_score(l_c_scores: np.array([[float]])) -> float:
@@ -108,9 +108,9 @@ def get_metrics(env, model, n_trials=100) -> Tuple[float, float, float, float]:
     )
 
 
-def conv_locs(locs):
-    scaled_locs = gym_utils.scale(locs, s=env.scale, d='up')
-    return [scaled_locs[::2], scaled_locs[1::2]]
+def conv_locs(locs, sim_size):
+    locs_ = locs * sim_size
+    return list(list(loc) for loc in zip(*locs_))
 
 
 def get_data():
@@ -155,14 +155,9 @@ def write_data(exp_num):
 
 def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
-    user_locs, uav_locs = get_locs(env, model)
-
-    user_locs = conv_locs(user_locs)
-    l_uav_locs = list(map(conv_locs, uav_locs))
-
-    a = animate.AnimatedScatter(user_locs, l_uav_locs, cov_range=env.cov_range, comm_range=env.comm_range,
+    user_locs, l_uav_locs = get_locs(env, model)
+    a = animate.AnimatedScatter(user_locs * env.sim_size, l_uav_locs * env.sim_size, cov_range=env.cov_range, comm_range=env.comm_range,
                                 sim_size=env.sim_size)
-    # plt.show()
 
     f = rf"{directory}/animation.mp4"
     writervideo = animation.FFMpegWriter(fps=60)
@@ -181,8 +176,8 @@ if __name__ == '__main__':
     # env.seed(0)
     env.reset()
 
-    model = PPO.load(f"{models_dir}/800000.zip", env=env)
+    model = PPO.load(f"{models_dir}/160000.zip", env=env)
 
     exp_num = 3
-    write_data(exp_num)
+    # write_data(exp_num)
     make_mp4(exp_num, env, model)
