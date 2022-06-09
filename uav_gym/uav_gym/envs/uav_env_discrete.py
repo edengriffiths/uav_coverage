@@ -68,6 +68,8 @@ class UAVCoverage(gym.Env):
 
         self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
 
+        self.cov_scores = [0] * self.n_users
+
         self.timestep = 0
 
         return self.state
