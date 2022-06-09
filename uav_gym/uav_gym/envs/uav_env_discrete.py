@@ -49,7 +49,9 @@ class UAVCoverage(gym.Env):
         self.action_space = self._action_space_0()
 
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
-        self.observation_space = self._observation_space_1()
+        self.observation_space = self._observation_space_0()
+
+        self.cov_scores = [0] * self.n_users
 
         self.state = None
         self.timestep = 0
@@ -63,7 +65,6 @@ class UAVCoverage(gym.Env):
             'uav_locs': gym_utils.conv_locs([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)],
                                             s=self.scale, from_state=False),
             'user_locs': gym_utils.conv_locs(self._gen_user_locs().tolist(), s=self.scale, from_state=False),
-            'cov_scores': np.array([0] * self.n_users)
         }
 
         self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
@@ -99,7 +100,7 @@ class UAVCoverage(gym.Env):
 
         # update state
         self.state['uav_locs'] = gym_utils.conv_locs(new_locs.tolist(), self.scale, from_state=False)
-        self.state['cov_scores'] += gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
+        self.cov_scores += gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
 
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
@@ -232,7 +233,6 @@ class UAVCoverage(gym.Env):
         """
         uav_locs = gym_utils.conv_locs(self.state['uav_locs'].tolist(), s=self.scale, from_state=True)
         user_locs = gym_utils.conv_locs(self.state['user_locs'].tolist(), s=self.scale, from_state=True)
-        cov_scores = self.state['cov_scores']
 
         scores = gym_utils.get_scores(
             uav_locs.tolist(),
@@ -241,7 +241,7 @@ class UAVCoverage(gym.Env):
             p_factor=self.sg.V['P_OUTSIDE_COV']
         )
 
-        f_idx = gym_utils.fairness_idx(cov_scores / self.timestep)
+        f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
 
         # increase the scores of the preferred users by a factor of self.pref_factor.
         scaled_scores = scores + (self.pref_factor - 1) * self.pref_users * scores
