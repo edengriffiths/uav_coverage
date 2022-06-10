@@ -1,5 +1,6 @@
 import json
 
+
 class Settings(object):
     def __init__(self):
         # ----
@@ -28,8 +29,8 @@ class Settings(object):
             # ----
             # REWARD
             'P_OUTSIDE_COV': 0.8,
-            'P_DISCONNECT': 100,
-            'P_OUT_BOUNDS': 100
+            'P_DISCONNECT': 1,
+            'P_OUT_BOUNDS': 1
         }
 
         self.V['DIST'] = self.V['SCALE']
