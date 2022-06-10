@@ -44,7 +44,7 @@ class Environments:
         done = False
         while not done:
             # model comes from global scope so that pickling still works
-            action, _states = model.predict(obs)
+            action, _states = model.predict(obs, deterministic=True)
             obs, rewards, done, info = env.step(action)
 
         c_scores = env.cov_scores / env.timestep
