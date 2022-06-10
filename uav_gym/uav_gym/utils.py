@@ -169,11 +169,3 @@ def get_disconnected_count(G):
 
     # Return the number of nodes not connected to home
     return G.number_of_nodes() - s.number_of_nodes()
-
-
-# energy used hovering
-def energy_hover(t): return t / 10
-
-
-# energy used flying
-def energy_move(t): return t / 9  # FIXME: Energy used moving should have a larger denominator.
