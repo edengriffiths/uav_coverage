@@ -61,10 +61,12 @@ class UAVCoverage(gym.Env):
         return [seed]
 
     def reset(self):
-        self.state = {
-            'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
-            'user_locs': np.array(self._gen_user_locs(), dtype=np.float32) / self.sim_size,
-        }
+        self.state = self.normalize_obs(
+            {
+                'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
+                'user_locs': np.array(self._gen_user_locs(), dtype=np.float32),
+            }
+        )
 
         self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
 
@@ -78,9 +80,11 @@ class UAVCoverage(gym.Env):
         done = False
         self.timestep += 1
 
-        # unpack state and convert units to metres.
-        uav_locs = self.state['uav_locs'] * self.sim_size
-        user_locs = self.state['user_locs'] * self.sim_size
+        state = self.denormalize_obs(self.state)
+
+        # unpack state
+        uav_locs = state['uav_locs']
+        user_locs = state['user_locs']
 
         distances = np.array([self.dist] * len(action))
         # ---
@@ -99,7 +103,13 @@ class UAVCoverage(gym.Env):
             dtype=np.float32)
 
         # update state
-        self.state['uav_locs'] = new_locs / self.sim_size
+        self.state = self.normalize_obs(
+            {
+                'uav_locs': new_locs,
+                'user_locs': user_locs
+            }
+        )
+
         self.cov_scores += gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
 
         # ---
@@ -115,8 +125,11 @@ class UAVCoverage(gym.Env):
         return self.state, reward, done, info
 
     def render(self, mode="human"):
-        uav_locs_ = self.state['uav_locs'] * self.sim_size
-        user_locs_ = self.state['user_locs'] * self.sim_size
+        state = self.denormalize_obs(self.state)
+
+        # unpack state
+        uav_locs_ = state['uav_locs']
+        user_locs_ = state['user_locs']
 
         uav_locs = list(zip(*uav_locs_))
         user_locs = list(zip(*user_locs_))
@@ -196,16 +209,28 @@ class UAVCoverage(gym.Env):
 
     def _observation_space_0(self):
         return gym.spaces.Dict({
-            'uav_locs': gym.spaces.Box(low=0, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
-            'user_locs': gym.spaces.Box(low=0, high=1, shape=(self.n_users, 2), dtype=np.float32),
+            'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
+            'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
         })
 
     def _observation_space_1(self):
         return gym.spaces.Dict({
-            'uav_locs': gym.spaces.Box(low=0, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
-            'user_locs': gym.spaces.Box(low=0, high=1, shape=(self.n_users, 2), dtype=np.float32),
-            'cov_scores': gym.spaces.Box(low=0, high=1, shape=(self.n_users,), dtype=np.float32),
+            'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
+            'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
+            'cov_scores': gym.spaces.Box(low=-1, high=1, shape=(self.n_users,), dtype=np.float32),
         })
+
+    def normalize_obs(self, obs):
+        return {
+            'uav_locs': obs['uav_locs'] / (self.sim_size / 2) - 1,
+            'user_locs': obs['user_locs'] / (self.sim_size / 2) - 1
+        }
+
+    def denormalize_obs(self, obs):
+        return {
+            'uav_locs': (obs['uav_locs'] + 1) * (self.sim_size / 2),
+            'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2)
+        }
 
     def reward_0(self, uav_locs, user_locs):
         """
