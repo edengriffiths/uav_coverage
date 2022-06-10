@@ -11,6 +11,7 @@ from operator import add
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import json
+import os
 
 
 def get_c_scores(i, env, model):
@@ -23,6 +24,7 @@ def get_c_scores(i, env, model):
         obs, rewards, done, info = env.step(action)
 
     c_scores = env.cov_scores / env.timestep
+
     return c_scores, env.pref_users
 
 
@@ -122,13 +124,13 @@ def get_data():
 
     i = 0
     while True:
-        if not any(abs(new_means - means) > ep): # and i > 10:
+        if not any(abs(new_means - means) > ep) and i > 9:
             break
+        print(f"iteration: {i}")
 
         totals = list(map(add, totals, get_metrics(env, model, 10)))
         new_means, means = np.array(totals) / (i + 1), new_means
 
-        print(f"iteration: {i}")
         print(abs(new_means - means))
         print(new_means)
         i += 1
@@ -176,8 +178,21 @@ if __name__ == '__main__':
     # env.seed(0)
     env.reset()
 
-    model = PPO.load(f"{models_dir}/160000.zip", env=env)
+    model = PPO.load(f"{models_dir}/750000.zip", env=env)
 
-    exp_num = 3
-    # write_data(exp_num)
+    exp_num = 4
+
+    directory = f"experiments/experiment #{exp_num}"
+
+    if os.path.isdir(directory):
+        if len(os.listdir(directory)) != 0:
+            inp = input(f'Are you sure you want to overwrite experiment {exp_num}? y/n ')
+            if inp == 'n':
+                exp_num += 1
+                directory = f"experiments/experiment #{exp_num}"
+                os.makedirs(directory)
+    else:
+        os.makedirs(directory)
+
+    write_data(exp_num)
     make_mp4(exp_num, env, model)
