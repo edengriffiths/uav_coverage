@@ -232,10 +232,16 @@ class UAVCoverage(gym.Env):
             'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2)
         }
 
-    def reward_0(self, uav_locs, user_locs):
+    def reward_0(self):
         """
         Basic
         """
+        state = self.denormalize_obs(self.state)
+
+        # unpack state
+        uav_locs = state['uav_locs']
+        user_locs = state['user_locs']
+
         total_score = sum(
             gym_utils.get_scores(
                 uav_locs,
@@ -251,8 +257,11 @@ class UAVCoverage(gym.Env):
         """
         Includes user scores, fairness, and user prioritisation
         """
-        uav_locs = self.state['uav_locs'] * self.sim_size
-        user_locs = self.state['user_locs'] * self.sim_size
+        state = self.denormalize_obs(self.state)
+
+        # unpack state
+        uav_locs = state['uav_locs']
+        user_locs = state['user_locs']
 
         scores = gym_utils.get_scores(
             uav_locs.tolist(),
@@ -275,10 +284,9 @@ class UAVCoverage(gym.Env):
         Include constant penalty for disconnecting or going out of bounds
         :param maybe_uav_locs: positions the UAVs tried to move to.
         """
-        uav_locs = self.state['uav_locs'] * self.sim_size
+        uav_locs = self.denormalize_obs(self.state)['uav_locs']
 
         reward = self.reward_1()
-
         graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), self.home_loc, self.comm_range)
         dconnect_count = gym_utils.get_disconnected_count(graph)
 
