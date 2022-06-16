@@ -41,7 +41,6 @@ class UAVCoverage(gym.Env):
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
         self.n_clusters = self.np_random.randint(1, 4)
 
-        self.pref_users = None
         self.pref_factor = 2
 
         # ----
@@ -65,10 +64,9 @@ class UAVCoverage(gym.Env):
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
                 'user_locs': np.array(self._gen_user_locs(), dtype=np.float32),
+                'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32)
             }
         )
-
-        self.pref_users = self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5])
 
         self.cov_scores = [0] * self.n_users
 
@@ -106,7 +104,8 @@ class UAVCoverage(gym.Env):
         self.state = self.normalize_obs(
             {
                 'uav_locs': new_locs,
-                'user_locs': user_locs
+                'user_locs': user_locs,
+                'pref_users': state['pref_users']
             }
         )
 
@@ -211,25 +210,21 @@ class UAVCoverage(gym.Env):
         return gym.spaces.Dict({
             'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
             'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
-        })
-
-    def _observation_space_1(self):
-        return gym.spaces.Dict({
-            'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
-            'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
-            'cov_scores': gym.spaces.Box(low=-1, high=1, shape=(self.n_users,), dtype=np.float32),
+            'pref_users': gym.spaces.MultiBinary(self.n_users)
         })
 
     def normalize_obs(self, obs):
         return {
             'uav_locs': obs['uav_locs'] / (self.sim_size / 2) - 1,
-            'user_locs': obs['user_locs'] / (self.sim_size / 2) - 1
+            'user_locs': obs['user_locs'] / (self.sim_size / 2) - 1,
+            'pref_users': obs['pref_users']
         }
 
     def denormalize_obs(self, obs):
         return {
             'uav_locs': (obs['uav_locs'] + 1) * (self.sim_size / 2),
-            'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2)
+            'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2),
+            'pref_users': obs['pref_users']
         }
 
     def reward_0(self):
@@ -262,6 +257,7 @@ class UAVCoverage(gym.Env):
         # unpack state
         uav_locs = state['uav_locs']
         user_locs = state['user_locs']
+        pref_users = state['pref_users']
 
         scores = gym_utils.get_scores(
             uav_locs.tolist(),
@@ -273,7 +269,7 @@ class UAVCoverage(gym.Env):
         f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
 
         # increase the scores of the preferred users by a factor of self.pref_factor.
-        scaled_scores = scores + (self.pref_factor - 1) * self.pref_users * scores
+        scaled_scores = scores + (self.pref_factor - 1) * pref_users * scores
 
         mean_score = sum(scaled_scores) / self.n_users
 

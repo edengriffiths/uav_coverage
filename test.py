@@ -49,7 +49,7 @@ class Environments:
 
         c_scores = env.cov_scores / env.timestep
 
-        return c_scores, env.pref_users
+        return c_scores, obs['pref_users']
 
     def get_c_scores_all(self):
         results = self.pool.map(self.get_c_scores_single, self.envs)
@@ -66,7 +66,13 @@ def get_locs(env, model):
         obs, rewards, done, info = env.step(action)
         uav_locs.append(env.denormalize_obs(obs)['uav_locs'])
 
-    return env.denormalize_obs(obs)['user_locs'], np.array(uav_locs)
+    user_locs = env.denormalize_obs(obs)['user_locs']
+    pref_users = obs['pref_users'].astype(bool)
+
+    reg_user_locs = user_locs[~pref_users]
+    pref_user_locs = user_locs[pref_users]
+
+    return reg_user_locs, pref_user_locs, np.array(uav_locs)
 
 
 def mean_cov_score(l_c_scores: np.array([[float]])) -> float:
@@ -163,10 +169,10 @@ def get_data(model):
 
         print(f"New metrics: {new_means}")
         print(f"Change in metrics: {abs(new_means - means)}")
-        print(f"Three prev stopping conditions: {sati}")
 
         i += 1
         sati = (sati[1], sati[2], not any(abs(new_means - means) > ep))
+        print(f"Three prev stopping conditions: {sati}")
 
     return new_means
 
@@ -190,8 +196,8 @@ def write_data(exp_num, model):
 
 def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
-    user_locs, l_uav_locs = get_locs(env, model)
-    a = animate.AnimatedScatter(user_locs, l_uav_locs.tolist(), cov_range=env.cov_range, comm_range=env.comm_range,
+    reg_user_locs, pref_user_locs, l_uav_locs = get_locs(env, model)
+    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(), cov_range=env.cov_range, comm_range=env.comm_range,
                                 sim_size=env.sim_size)
 
     f = rf"{directory}/animation.mp4"
@@ -211,9 +217,9 @@ if __name__ == '__main__':
     # env.seed(0)
     env.reset()
 
-    model = PPO.load(f"{models_dir}/700000.zip")
+    model = PPO.load(f"{models_dir}/1600000.zip")
 
-    exp_num = 5
+    exp_num = 6
 
     directory = f"experiments/experiment #{exp_num}"
 

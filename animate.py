@@ -16,9 +16,11 @@ Locs = List[Loc]
 
 
 class AnimatedScatter(object):
-    def __init__(self, user_locs: Locs, l_uav_locs: List[Locs], cov_range: int, comm_range: int, sim_size: int):
-        self.user_locs = user_locs
-        self.l_uav_locs = l_uav_locs
+    def __init__(self, reg_user_locs: Locs, pref_user_locs: Locs, l_uav_locs: List[Locs],
+                 cov_range: int, comm_range: int, sim_size: int):
+        self.reg_user_locs = reg_user_locs
+        self.pref_user_locs = pref_user_locs
+        self.l_uav_locs = np.array(l_uav_locs)
         self.cov_range = cov_range
         self.comm_range = comm_range
         self.sim_size = sim_size
@@ -53,7 +55,7 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=self.n_timesteps,
-                                           interval=100,
+                                           interval=10,
                                            repeat=False)
 
     def setup(self):
@@ -61,10 +63,12 @@ class AnimatedScatter(object):
         Initialise the figure for the animation
         """
         x_uavs, y_uavs = list(zip(*self.l_uav_locs[0]))
-        user_locs = list(zip(*self.user_locs))
+        reg_user_locs = list(zip(*self.reg_user_locs))
+        pref_user_locs = list(zip(*self.pref_user_locs))
 
         # add users
-        self.users = self.ax.scatter(user_locs[0], user_locs[1], s=20, c='gray')
+        self.reg_users = self.ax.scatter(reg_user_locs[0], reg_user_locs[1], s=20, c='gray')
+        self.pref_users = self.ax.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
 
         # add UAVs
         self.uavs = self.ax.scatter(x_uavs, y_uavs, s=20, c='r')
@@ -78,7 +82,7 @@ class AnimatedScatter(object):
         lc = LineCollection(c, linestyles=':')
         self.uav_connection = self.ax.add_collection(lc)
 
-        return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
+        return (self.title, self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
 
     def update(self, i):
         x_uavs, y_uavs = list(zip(*self.l_uav_locs[i]))
@@ -97,7 +101,7 @@ class AnimatedScatter(object):
         c = get_connections(self.l_uav_locs[i], comm_range=self.comm_range)
         self.uav_connection.set_segments(c)
 
-        return (self.title, self.users, self.uavs, self.uav_connection, *self.circles)
+        return (self.title, self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
 
 
 def edge_to_locs(g: nx.Graph, e: Tuple[int]):
@@ -136,7 +140,8 @@ if __name__ == '__main__':
         ]
     ]
 
-    user_locs = [[10, 20], [10, 20]]
+    reg_user_locs = [[10, 20], [10, 20]]
+    pref_user_locs = [[20, 10], [30, 30]]
 
-    a = AnimatedScatter(user_locs, uav_locs, cov_range=200, comm_range=500, sim_size=1000)
+    a = AnimatedScatter(reg_user_locs, pref_user_locs, uav_locs, cov_range=200, comm_range=500, sim_size=1000)
     plt.show()
