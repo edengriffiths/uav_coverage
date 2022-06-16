@@ -22,8 +22,6 @@ class UAVCoverage(gym.Env):
         # ----
         # SIMULATION
         self.sim_size = self.sg.V['SIM_SIZE']
-        self.scale = self.sg.V['SCALE']
-
         self.home_loc = self.sg.V['HOME_LOC']
 
         # ----

@@ -9,7 +9,6 @@ class Settings(object):
             # ----
             # SIMULATION SETTINGS
             'SIM_SIZE': 1000,  # keep sim_size divisible by scale
-            'SCALE': 50,  # metres per unit
             'HOME_LOC': [0, 0],
 
             # ----
@@ -22,7 +21,7 @@ class Settings(object):
             'NUM_UAV': 4,
             'COV_RANGE': 200,  # radius of the coverage range on the ground
             'COMM_RANGE': 500,  # distance UAVs can be and still communicate with each other or home base.
-
+            'DIST': 10,
             'INIT_POSITION': [0, 0],
 
             # ----
@@ -31,5 +30,3 @@ class Settings(object):
             'P_DISCONNECT': 1,
             'P_OUT_BOUNDS': 1
         }
-
-        self.V['DIST'] = self.V['SCALE']
