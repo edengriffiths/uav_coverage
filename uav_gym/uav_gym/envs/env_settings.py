@@ -11,7 +11,6 @@ class Settings(object):
             'SIM_SIZE': 1000,  # keep sim_size divisible by scale
             'SCALE': 50,  # metres per unit
             'HOME_LOC': [0, 0],
-            'MAX_TIMESTEPS': 1800,
 
             # ----
             # USER SETTINGS

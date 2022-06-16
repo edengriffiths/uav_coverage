@@ -75,6 +75,8 @@ class UAVCoverage(gym.Env):
         return self.state
 
     def step(self, action: np.ndarray):
+        # gym wrapper will make done = True after 1800 timesteps
+
         done = False
         self.timestep += 1
 
@@ -114,10 +116,6 @@ class UAVCoverage(gym.Env):
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
         reward = self.reward_2(maybe_locs)
-
-        # stop after 30 minutes where each timestep is 1 second.
-        if self.timestep >= self.sg.V['MAX_TIMESTEPS']:
-            done = True
 
         info = {}
 
