@@ -9,6 +9,7 @@ from uav_gym.envs.env_settings import Settings
 import uav_gym.utils as gym_utils
 
 import numpy as np
+import math
 from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
@@ -210,15 +211,17 @@ class UAVCoverage(gym.Env):
         })
 
     def normalize_obs(self, obs):
+        sig_figs = math.floor(math.log(self.sim_size, 10))
         return {
-            'uav_locs': obs['uav_locs'] / (self.sim_size / 2) - 1,
+            'uav_locs': (obs['uav_locs'] / (self.sim_size / 2) - 1).round(sig_figs),
             'user_locs': obs['user_locs'] / (self.sim_size / 2) - 1,
             'pref_users': obs['pref_users']
         }
 
     def denormalize_obs(self, obs):
+        print(obs['uav_locs'])
         return {
-            'uav_locs': (obs['uav_locs'] + 1) * (self.sim_size / 2),
+            'uav_locs': ((obs['uav_locs'] + 1) * (self.sim_size / 2)).round(0),
             'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2),
             'pref_users': obs['pref_users']
         }
@@ -301,15 +304,17 @@ if __name__ == '__main__':
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
 
-    check_env(env)
+    # check_env(env)
 
     obs = env.reset()
+    # print(env.denormalize_obs(obs)['uav_locs'])
     n_steps = 100
     for _ in range(n_steps):
         # Random action
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         print(reward)
+        # print(env.denormalize_obs(obs)['uav_locs'])
         if done:
             obs = env.reset()
         env.render()
