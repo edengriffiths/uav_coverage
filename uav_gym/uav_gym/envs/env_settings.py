@@ -10,6 +10,7 @@ class Settings(object):
             # SIMULATION SETTINGS
             'SIM_SIZE': 1000,  # keep sim_size divisible by scale
             'HOME_LOC': [0, 0],
+            'TIME_PER_STEP': 3,
 
             # ----
             # USER SETTINGS

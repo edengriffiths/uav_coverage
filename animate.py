@@ -26,7 +26,7 @@ class AnimatedScatter(object):
         self.sim_size = sim_size
 
         self.n_timesteps = len(l_uav_locs)
-        self.time_per_epoch = 1
+        self.time_per_epoch = 3
 
         self.n_uavs = len(l_uav_locs[0])
 
@@ -55,7 +55,7 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=self.n_timesteps,
-                                           interval=10,
+                                           interval=50,
                                            repeat=False)
 
     def setup(self):
@@ -134,6 +134,12 @@ if __name__ == '__main__':
     uav_locs = [
         [
             [0, 0], [0, 0], [0, 0]
+        ],
+        [
+            [50, 0], [0, 50], [0, 0]
+        ],
+        [
+            [50, 0], [0, 50], [0, 0]
         ],
         [
             [50, 0], [0, 50], [0, 0]
