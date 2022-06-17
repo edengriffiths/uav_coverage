@@ -130,19 +130,35 @@ class UAVCoverage(gym.Env):
         uav_locs = list(zip(*uav_locs_))
         user_locs = list(zip(*user_locs_))
 
+        # set up figures and axes
+        # ---
+        fig, ax = plt.subplots()
+
+        # set figure size
+        fig.set_size_inches(6, 6)
+
+        # set axes to always be equal
+        plt.axis('scaled')
+
         # Render the environment to the screen
         plt.xlim([0, self.sim_size])
         plt.ylim([0, self.sim_size])
 
-        plt.scatter(uav_locs[0], uav_locs[1], s=20000, color='blue', alpha=0.3)
+        circles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(self.n_uavs)]
+        # add coverage of UAVs
+        for circle in circles:
+            ax.add_patch(circle)
+
+        # Update UAV coverage positions
+        for circle, x, y in zip(circles, uav_locs[0], uav_locs[1]):
+            circle.center = (x, y)
+
         plt.scatter(uav_locs[0], uav_locs[1], color='red')
 
         plt.scatter(user_locs[0], user_locs[1], color='grey', s=2)
         plt.xlabel("X cordinate")
         plt.ylabel("Y cordinate")
-        plt.pause(0.001)
         plt.show()
-        plt.clf()
 
     def _gen_user_locs(self):
         self.n_clusters = self.np_random.randint(1, 4)
