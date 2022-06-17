@@ -41,7 +41,7 @@ class UAVCoverage(gym.Env):
         self.n_users = self.sg.V['NUM_USERS']
 
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
-        self.n_clusters = self.np_random.randint(1, 4)
+        self.n_clusters = None
 
         self.pref_factor = 2
 
@@ -145,6 +145,8 @@ class UAVCoverage(gym.Env):
         plt.clf()
 
     def _gen_user_locs(self):
+        self.n_clusters = self.np_random.randint(1, 4)
+
         stds = self.get_stds()
 
         centers = self.get_centers(stds)
