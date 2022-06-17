@@ -49,8 +49,6 @@ class UAVCoverage(gym.Env):
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = self._observation_space_0()
 
-        self.cov_scores = [0] * self.n_users
-
         self.state = None
         self.timestep = 0
 
@@ -63,11 +61,10 @@ class UAVCoverage(gym.Env):
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
                 'user_locs': np.array(self._gen_user_locs(), dtype=np.float32),
-                'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32)
+                'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32),
+                'cov_scores': np.array([0] * self.n_users, dtype=np.float32)
             }
         )
-
-        self.cov_scores = [0] * self.n_users
 
         self.timestep = 0
 
@@ -75,7 +72,6 @@ class UAVCoverage(gym.Env):
 
     def step(self, action: np.ndarray):
         # gym wrapper will make done = True after 1800 timesteps
-
         done = False
         self.timestep += 1
 
@@ -106,11 +102,11 @@ class UAVCoverage(gym.Env):
             {
                 'uav_locs': new_locs,
                 'user_locs': user_locs,
-                'pref_users': state['pref_users']
+                'pref_users': state['pref_users'],
+                'cov_scores': state['cov_scores'] +
+                              gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
             }
         )
-
-        self.cov_scores += gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
 
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
@@ -207,7 +203,8 @@ class UAVCoverage(gym.Env):
         return gym.spaces.Dict({
             'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
             'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
-            'pref_users': gym.spaces.MultiBinary(self.n_users)
+            'pref_users': gym.spaces.MultiBinary(self.n_users),
+            'cov_scores': gym.spaces.Box(low=-1, high=1, shape=(self.n_users,), dtype=np.float32)
         })
 
     def normalize_obs(self, obs):
@@ -215,14 +212,16 @@ class UAVCoverage(gym.Env):
         return {
             'uav_locs': (obs['uav_locs'] / (self.sim_size / 2) - 1).round(sig_figs),
             'user_locs': obs['user_locs'] / (self.sim_size / 2) - 1,
-            'pref_users': obs['pref_users']
+            'pref_users': obs['pref_users'],
+            'cov_scores': obs['cov_scores'] * 2 - 1
         }
 
     def denormalize_obs(self, obs):
         return {
             'uav_locs': ((obs['uav_locs'] + 1) * (self.sim_size / 2)).round(0),
             'user_locs': (obs['user_locs'] + 1) * (self.sim_size / 2),
-            'pref_users': obs['pref_users']
+            'pref_users': obs['pref_users'],
+            'cov_scores': (obs['cov_scores'] + 1) / 2
         }
 
     def reward_0(self):
@@ -256,6 +255,7 @@ class UAVCoverage(gym.Env):
         uav_locs = state['uav_locs']
         user_locs = state['user_locs']
         pref_users = state['pref_users']
+        cov_scores = state['cov_scores']
 
         scores = gym_utils.get_scores(
             uav_locs.tolist(),
@@ -264,7 +264,7 @@ class UAVCoverage(gym.Env):
             p_factor=self.sg.V['P_OUTSIDE_COV']
         )
 
-        f_idx = gym_utils.fairness_idx(self.cov_scores / self.timestep)
+        f_idx = gym_utils.fairness_idx(cov_scores / self.timestep)
 
         # increase the scores of the preferred users by a factor of self.pref_factor.
         scaled_scores = scores + (self.pref_factor - 1) * pref_users * scores
@@ -303,17 +303,17 @@ if __name__ == '__main__':
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
 
-    # check_env(env)
+    check_env(env)
 
     obs = env.reset()
-    # print(env.denormalize_obs(obs)['uav_locs'])
-    n_steps = 100
+    print(env.denormalize_obs(obs)['cov_scores'])
+    n_steps = 1000
     for _ in range(n_steps):
         # Random action
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         print(reward)
-        # print(env.denormalize_obs(obs)['uav_locs'])
+        print(env.denormalize_obs(obs)['cov_scores'])
         if done:
             obs = env.reset()
         env.render()

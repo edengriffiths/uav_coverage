@@ -21,7 +21,7 @@ class Settings(object):
             'NUM_UAV': 4,
             'COV_RANGE': 200,  # radius of the coverage range on the ground
             'COMM_RANGE': 500,  # distance UAVs can be and still communicate with each other or home base.
-            'DIST': 10,
+            'DIST': 50,
             'INIT_POSITION': [0, 0],
 
             # ----
