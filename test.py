@@ -205,21 +205,28 @@ def make_mp4(exp_num, env, model):
     a.ani.save(f, writer=writervideo)
 
 
+def show_mp4(env, model):
+    reg_user_locs, pref_user_locs, l_uav_locs = get_locs(env, model)
+    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(), cov_range=env.cov_range,
+                                comm_range=env.comm_range,
+                                sim_size=env.sim_size)
+    plt.show()
+
+
 if __name__ == '__main__':
-    # models_dir = "rl-baselines3-zoo/logs/ppo"
-    #
-    # model = PPO.load(f"{models_dir}/uav-v0_13/best_model.zip", env=env)
+    models_dir = "rl-baselines3-zoo/logs/ppo"
+
+    model = PPO.load(f"{models_dir}/uav-v0_34/best_model.zip")
 
     env_v = 'v5'
-    models_dir = f"models/{env_v}/PPO"
+    # models_dir = f"models/{env_v}/PPO"
+    # model = PPO.load(f"{models_dir}/1600000.zip")
 
     env = gym.make('uav-v0')
     # env.seed(0)
     env.reset()
 
-    model = PPO.load(f"{models_dir}/1600000.zip")
-
-    exp_num = 6
+    exp_num = 8
 
     directory = f"experiments/experiment #{exp_num}"
 
@@ -233,5 +240,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    write_data(exp_num, model)
-    make_mp4(exp_num, env, model)
+    # write_data(exp_num, model)
+    # make_mp4(exp_num, env, model)
+    show_mp4(env, model)
