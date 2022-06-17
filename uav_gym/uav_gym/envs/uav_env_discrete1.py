@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, n_uavs: int = None):
+    def __init__(self):
         self.sg = Settings()
 
         self.seed()
@@ -27,10 +27,7 @@ class UAVCoverage(gym.Env):
 
         # ----
         # UAV
-        if n_uavs is not None:
-            self.n_uavs = n_uavs
-        else:
-            self.n_uavs = self.sg.V['NUM_UAV']
+        self.n_uavs = self.sg.V['NUM_UAV']
         self.cov_range = self.sg.V['COV_RANGE']
         self.comm_range = self.sg.V['COMM_RANGE']
 
@@ -39,9 +36,7 @@ class UAVCoverage(gym.Env):
         # ----
         # USERS
         self.n_users = self.sg.V['NUM_USERS']
-
-        self.b_factor = self.sg.V['BOUNDARY_FACTOR']
-        self.n_clusters = self.np_random.randint(1, 4)
+        self.user_locs = self._gen_user_locs()
 
         self.pref_factor = 2
 
@@ -63,7 +58,6 @@ class UAVCoverage(gym.Env):
         self.state = self.normalize_obs(
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
-                'user_locs': np.array(self._gen_user_locs(), dtype=np.float32),
                 'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32),
                 'cov_scores': np.array([0] * self.n_users, dtype=np.float32)
             }
@@ -74,7 +68,7 @@ class UAVCoverage(gym.Env):
         return self.state
 
     def step(self, action: np.ndarray):
-        # gym wrapper will make done = True after 1800 timesteps
+        # gym wrapper will make done = True after 600 timesteps. each timestep is 3 seconds long.
         done = False
         self.timestep += 1
 
@@ -82,7 +76,6 @@ class UAVCoverage(gym.Env):
 
         # unpack state
         uav_locs = state['uav_locs']
-        user_locs = state['user_locs']
 
         distances = np.array([self.dist] * len(action))
         # ---
@@ -100,15 +93,13 @@ class UAVCoverage(gym.Env):
              for i in range(len(moves))],
             dtype=np.float32)
 
-        cov_state = gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
-        new_cov_scores = state['cov_scores'] * (self.timestep - 1) / self.timestep + cov_state / self.timestep
         # update state
         self.state = self.normalize_obs(
             {
                 'uav_locs': new_locs,
-                'user_locs': user_locs,
                 'pref_users': state['pref_users'],
-                'cov_scores': new_cov_scores
+                'cov_scores': state['cov_scores'] +
+                              gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
             }
         )
 
@@ -145,58 +136,12 @@ class UAVCoverage(gym.Env):
         plt.clf()
 
     def _gen_user_locs(self):
-        stds = self.get_stds()
+        users_per_line = int(np.round(np.sqrt(self.n_users), 0))
+        dist_bw_users = self.sim_size / users_per_line
+        dist_from_edge = dist_bw_users / 2
+        locs = [[x, y] for x in range(users_per_line) for y in range(users_per_line)]
 
-        centers = self.get_centers(stds)
-
-        densities = self.np_random.uniform(low=0.5, high=1.0, size=self.n_clusters)
-
-        n_samples = (self.n_users * (stds * densities) / sum(stds * densities))
-
-        # the following rounds n_samples to integers while ensuring the sum equals self.n_users.
-        ints = n_samples.astype(int)
-        rems = n_samples - n_samples.astype(int)
-        diff = self.n_users - sum(ints)
-
-        inds = np.argpartition(rems, -diff)[-diff:]
-        m = np.zeros(self.n_clusters).astype(int)
-        m[inds] = 1
-
-        if diff > 0:
-            n_samples = ints + m
-        else:
-            n_samples = ints
-
-        ul_init, blob_ids = make_blobs(n_samples=n_samples, centers=centers, cluster_std=stds,
-                                       random_state=self.np_random.randint(2 ** 32 - 1))
-
-        ul_locs = gym_utils.constrain_user_locs(ul_init.tolist(),
-                                                blob_ids, centers, stds, self.b_factor, self.np_random).tolist()
-
-        return np.array(sorted(ul_locs), dtype=np.float32)
-
-    def get_stds(self):
-        samples = self.np_random.poisson(6, size=10000).astype(float)
-        samples *= self.sim_size / 2 / 15 / self.b_factor
-        samples += 50
-
-        stds = self.np_random.choice(samples, size=self.n_clusters)
-
-        while any(stds * self.b_factor > self.sim_size / 2) or any(stds == 0):
-            stds = self.np_random.choice(samples, size=self.n_clusters)
-
-        return stds
-
-    def get_centers(self, stds: Tuple[float]):
-        assert all([self.b_factor * std <= self.sim_size / 2 for std in stds])
-
-        centers = [
-            [self.np_random.uniform(self.b_factor * std, self.sim_size - self.b_factor * std)
-             for _ in range(2)]
-            for std in stds
-        ]
-
-        return np.array(centers)
+        return np.array(locs, dtype=np.int32) * dist_bw_users + dist_from_edge
 
     def _action_space_0(self):
         return gym.spaces.MultiDiscrete(
@@ -317,7 +262,7 @@ if __name__ == '__main__':
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         print(reward)
-        print(env.denormalize_obs(obs))
+        # print(env.denormalize_obs(obs)['uav_locs'])
         if done:
             obs = env.reset()
         env.render()
