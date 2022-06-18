@@ -1,4 +1,6 @@
 from functools import reduce
+
+from numpy import ndarray
 from scipy.spatial import distance
 import numpy as np
 import networkx as nx
@@ -85,39 +87,17 @@ def get_coverage_state(uav_locs: RegLocs, user_locs: RegLocs, cov_range: int):
     return reduce(lambda acc, x: acc | x, coverage_states)
 
 
-def _get_score(dist: float, cov_range: float, p_factor: float) -> float:
-    """
-    user score = 1, if user is within coverage range of a UAV
-                 p_factor * 1/(1 + distance) from the closest UAV, otherwise
-    The score for users outside the coverage range incentivises the UAVs to move closer to the users, however, it will
-    always be less than 1.
-
-    :param dist: distance to closest uav
-    :param cov_range: the coverage range of the UAVs
-    :param p_factor: the punishment factor for being outside the coverage range.
-    :return: the score as a float
-    """
-    if dist <= cov_range:
-        return 1
-    else:
-        return p_factor * 1 / (1 + dist)
-
-
-def get_scores(uav_locs: RegLocs, user_locs: RegLocs, cov_range: float, p_factor: float) -> np.array([float]):
+def dist_to_users(uav_locs: RegLocs, user_locs: RegLocs) -> np.array([float]):
     check_type("uav_locs", user_locs, RegLocs)
     check_type("user_locs", user_locs, RegLocs)
 
     # for each UAV get distance to each user
-    dist_to_users = distance.cdist(uav_locs, user_locs, 'euclidean')
+    dists = distance.cdist(uav_locs, user_locs, 'euclidean')
 
     # get the minimum distance to a UAV for each user
-    min_dist_to_users = dist_to_users.min(axis=0)
+    min_dist_to_users = dists.min(axis=0)
 
-    # compute the score for each user
-    user_scores = np.array([_get_score(min_dist_to_users[i], cov_range, p_factor)
-                            for i in range(len(min_dist_to_users))])
-
-    return user_scores
+    return min_dist_to_users
 
 
 def fairness_idx(cov_scores: np.array([float])) -> float:
