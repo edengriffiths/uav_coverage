@@ -62,10 +62,10 @@ class UAVCoverage(gym.Env):
     def reset(self):
         self.state = self.normalize_obs(
             {
-                'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float32),
-                'user_locs': np.array(self._gen_user_locs(), dtype=np.float32),
+                'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float64),
+                'user_locs': np.array(self._gen_user_locs(), dtype=np.float64),
                 'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32),
-                'cov_scores': np.array([0] * self.n_users, dtype=np.float32)
+                'cov_scores': np.array([0] * self.n_users, dtype=np.float64)
             }
         )
 
@@ -98,7 +98,7 @@ class UAVCoverage(gym.Env):
              else
              uav_locs[i]
              for i in range(len(moves))],
-            dtype=np.float32)
+            dtype=np.float64)
 
         cov_state = gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
         prev_cov_scores = state['cov_scores'].copy()
@@ -192,7 +192,7 @@ class UAVCoverage(gym.Env):
         ul_locs = gym_utils.constrain_user_locs(ul_init.tolist(),
                                                 blob_ids, centers, stds, self.b_factor, self.np_random).tolist()
 
-        return np.array(sorted(ul_locs), dtype=np.float32)
+        return np.array(sorted(ul_locs), dtype=np.float64)
 
     def get_stds(self):
         samples = self.np_random.poisson(6, size=10000).astype(float)
@@ -224,10 +224,10 @@ class UAVCoverage(gym.Env):
 
     def _observation_space_0(self):
         return gym.spaces.Dict({
-            'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float32),
-            'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float32),
+            'uav_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_uavs, 2), dtype=np.float64),
+            'user_locs': gym.spaces.Box(low=-1, high=1, shape=(self.n_users, 2), dtype=np.float64),
             'pref_users': gym.spaces.MultiBinary(self.n_users),
-            'cov_scores': gym.spaces.Box(low=-1, high=1, shape=(self.n_users,), dtype=np.float32)
+            'cov_scores': gym.spaces.Box(low=-1, high=1, shape=(self.n_users,), dtype=np.float64)
         })
 
     def normalize_obs(self, obs):
@@ -309,28 +309,29 @@ if __name__ == '__main__':
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
 
-    # check_env(env)
+    check_env(env)
+
+    # obs = env.reset()
+    # # print(env.denormalize_obs(obs)['uav_locs'])
+    # n_steps = 100
+    # for _ in range(n_steps):
+    #     # Random action
+    #     action = env.action_space.sample()
+    #     obs, reward, done, info = env.step(action)
+    #     print(reward)
+    #     # print(env.denormalize_obs(obs))
+    #     if done:
+    #         obs = env.reset()
+    #     env.render()
+
+    model = PPO('MultiInputPolicy', env, verbose=1)
+    model.learn(total_timesteps=10**5)
 
     obs = env.reset()
-    # print(env.denormalize_obs(obs)['uav_locs'])
-    n_steps = 100
-    for _ in range(n_steps):
-        # Random action
-        action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
-        print(reward)
-        # print(env.denormalize_obs(obs))
-        if done:
-            obs = env.reset()
+    env.seed(0)
+    locs = []
+    for _ in range(200):
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+        print(rewards)
         env.render()
-
-    # model = PPO('MultiInputPolicy', env, verbose=1)
-    # model.learn(total_timesteps=10**5)
-    #
-    # obs = env.reset()
-    # env.seed(0)
-    # locs = []
-    # for _ in range(200):
-    #     action, _states = model.predict(obs)
-    #     obs, rewards, done, info = env.step(action)
-    #     env.render()
