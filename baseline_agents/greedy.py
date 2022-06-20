@@ -40,11 +40,22 @@ def get_fake_greedy_action(env):
             action[uav] = action_i
 
             new_env = deepcopy(env)
-            obs, reward, done, info = new_env.step(action)
+            obs, reward, _, _ = new_env.step(action)
 
             if reward > best_reward:
                 best_action = action
                 best_reward = reward
+
+    # check if the action would take out of bounds or disconnect. If it would, none move.
+    new_env = deepcopy(env)
+    obs, _, _, _ = new_env.step(best_action)
+    uav_locs = env.denormalize_obs(obs)['uav_locs']
+
+    graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), env.home_loc, env.comm_range)
+    dconnect_count = gym_utils.get_disconnected_count(graph)
+
+    if not all(gym_utils.inbounds(uav_locs, env.sim_size, env.sim_size)) or dconnect_count > 0:
+        return [0] * n_uavs
 
     return best_action
 
@@ -52,37 +63,31 @@ def get_fake_greedy_action(env):
 env = gym.make('uav-v0', n_uavs=4)
 env.seed(0)
 obs = env.reset()
-# print(env.denormalize_obs(obs)['uav_locs'])
-
 done = False
 
-# while not done:
-#     action = get_fake_greedy_action(env)
-#     obs, reward, done, info = env.step(action)
-#     print(action)
-#     env.render()
-
-actions = [
-    [1, 2, 0, 0],
-    [2, 2, 0, 0],
-    [2, 2, 0, 0],
-    [2, 2, 1, 0],
-    [2, 2, 2, 0],
-    [2, 2, 2, 0],
-    [0, 2, 0, 0],
-    [0, 2, 0, 0],
-    [0, 1, 0, 0],
-    [0, 2, 0, 0],
-    [0, 2, 0, 0],
-    [0, 0, 0, 0],
-    # [0, 1, 0, 0],
-    # [0, 1, 0, 0],
-    # [0, 1, 0, 0],
-    # [0, 1, 0, 0],
-]
-
-for action in actions:
+while not done:
+    action = get_fake_greedy_action(env)
     obs, reward, done, info = env.step(action)
-    # print(reward)
-    # print(obs['cov_scores'])
+    print(action)
+    print(reward)
     env.render()
+
+# actions = [
+#     [0, 0, 0, 0],
+#     [2, 1, 0, 0],
+#     [2, 1, 0, 0],
+#
+# ]
+#
+# import numpy as np
+# env.state['uav_locs'] = np.array([
+#     [-0.2, -0.4],
+#     [-0.8,  0.4],
+#     [-1.,  -1.],
+#     [-1.,  -1.]
+# ])
+#
+# for action in actions:
+#     obs, reward, done, info = env.step(action)
+#     print(reward)
+#     env.render()
