@@ -3,6 +3,7 @@ from typing import Tuple
 
 import uav_gym
 import animate
+import uav_gym.utils as gym_utils
 
 from stable_baselines3 import PPO
 import numpy as np
@@ -56,23 +57,34 @@ class Environments:
         return results
 
 
-def get_locs(env, model):
+def get_graph_data(env, model):
     uav_locs = []
+    c_scores_all = []
+    c_scores_reg = []
+    c_scores_pref = []
+    fidx = []
 
     obs = env.reset()
+
+    user_locs = env.denormalize_obs(obs)['user_locs']
+    pref_users = obs['pref_users'].astype(bool)
+    reg_user_locs = user_locs[~pref_users]
+    pref_user_locs = user_locs[pref_users]
+
     done = False
     while not done:
         action, _states = model.predict(obs)
         obs, rewards, done, info = env.step(action)
+
+        c_scores = env.denormalize_obs(obs)['cov_scores']
+
         uav_locs.append(env.denormalize_obs(obs)['uav_locs'])
+        c_scores_all.append(np.round(c_scores.mean(), 4))
+        c_scores_reg.append(np.round(c_scores[~pref_users].mean(), 4))
+        c_scores_pref.append(np.round(c_scores[pref_users].mean(), 4))
+        fidx.append(np.round(gym_utils.fairness_idx(c_scores), 4))
 
-    user_locs = env.denormalize_obs(obs)['user_locs']
-    pref_users = obs['pref_users'].astype(bool)
-
-    reg_user_locs = user_locs[~pref_users]
-    pref_user_locs = user_locs[pref_users]
-
-    return reg_user_locs, pref_user_locs, np.array(uav_locs)
+    return reg_user_locs, pref_user_locs, np.array(uav_locs), c_scores_all, c_scores_reg, c_scores_pref, fidx
 
 
 def mean_cov_score(l_c_scores: np.array([[float]])) -> float:
@@ -196,9 +208,10 @@ def write_data(exp_num, model):
 
 def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
-    reg_user_locs, pref_user_locs, l_uav_locs = get_locs(env, model)
-    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(), cov_range=env.cov_range, comm_range=env.comm_range,
-                                sim_size=env.sim_size)
+    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env, model)
+    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
+                                c_scores_all, c_scores_reg, c_scores_pref, fidx,
+                                cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
 
     f = rf"{directory}/animation.mp4"
     writervideo = animation.FFMpegWriter(fps=10)
@@ -206,23 +219,23 @@ def make_mp4(exp_num, env, model):
 
 
 def show_mp4(env, model):
-    reg_user_locs, pref_user_locs, l_uav_locs = get_locs(env, model)
-    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(), cov_range=env.cov_range,
-                                comm_range=env.comm_range,
-                                sim_size=env.sim_size)
+    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env, model)
+    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
+                                c_scores_all, c_scores_reg, c_scores_pref, fidx,
+                                cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
     plt.show()
 
 
 if __name__ == '__main__':
     models_dir = "rl-baselines3-zoo/logs/ppo"
 
-    model = PPO.load(f"{models_dir}/uav-v0_40/best_model.zip")
+    model = PPO.load(f"{models_dir}/uav-v0_45/best_model.zip")
 
     env_v = 'v5'
     # models_dir = f"models/{env_v}/PPO"
     # model = PPO.load(f"{models_dir}/1600000.zip")
 
-    env = gym.make('uav-v0')
+    env = gym.make('uav-v0', demonstration=False)
     # env.seed(0)
     env.reset()
 
