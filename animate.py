@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.collections import LineCollection
 import matplotlib.patches
+from matplotlib import gridspec
 
 from typing import Tuple, List, Union
 
@@ -34,36 +35,28 @@ class AnimatedScatter(object):
 
         self.n_timesteps = len(l_uav_locs)
         self.time_per_epoch = 3
+        self.time = [self.time_per_epoch * i for i in range(self.n_timesteps)]
 
         self.n_uavs = len(l_uav_locs[0])
 
         # set up figures and axes
         # ---
-        self.fig, self.ax_graph = plt.subplots()
-        self.ax_table = self.fig.add_axes([0.27, 0.17, 0.5, 0.2])  # create axes for table
-        # hide actual axes
-        self.ax_table.axis('tight')
-        self.ax_table.axis('off')
-
-        plt.subplots_adjust(bottom=0.25)    # add space for table
+        self.fig, (self.ax_env, self.ax_plot) = plt.subplots(1, 2)
 
         # set figure size
-        self.fig.set_size_inches(6, 6)
+        self.fig.set_size_inches(12, 4)
+        self.fig.subplots_adjust(right=0.7)
 
-        # set graph axes to always be equal
-        self.ax_graph.axis('scaled')
+        # set env axes to always be equal
+        self.ax_env.axis('scaled')
 
-        # set graph axis limits
-        self.ax_graph.set_xlim(0, self.sim_size)
-        self.ax_graph.set_ylim(0, self.sim_size)
+        # set ax_env limits
+        self.ax_env.set_xlim(0, self.sim_size)
+        self.ax_env.set_ylim(0, self.sim_size)
 
-        # add table
-        self.table = self.ax_table.table(cellText=[["00:00:00"], ["0"], ["0"], ["0"], ["1"]],
-                                         rowLabels=['Time Elapsed', 'Mean Coverage Score (All)',
-                                              'Mean Coverage Score (Regular)', 'Mean Coverage Score (Prioritised)',
-                                              'Fairness Index'],
-                                         colWidths=[0.15],
-                                         )
+        # set ax_plot limits
+        self.ax_plot.set_ylim(0, 1)
+        self.ax_plot.set_xlim(0, max(self.time))
 
         # initialise patches
         # ---
@@ -75,45 +68,55 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=self.n_timesteps,
-                                           interval=150,
+                                           interval=50,
                                            repeat=False)
 
     def setup(self):
         """
         Initialise the figure for the animation
         """
+
+        # ----
+        # set up env axes
+
         x_uavs, y_uavs = list(zip(*self.l_uav_locs[0]))
         reg_user_locs = list(zip(*self.reg_user_locs))
         pref_user_locs = list(zip(*self.pref_user_locs))
 
         # add users
-        self.reg_users = self.ax_graph.scatter(reg_user_locs[0], reg_user_locs[1], s=20, c='gray')
-        self.pref_users = self.ax_graph.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
+        self.reg_users = self.ax_env.scatter(reg_user_locs[0], reg_user_locs[1], s=20, c='gray')
+        self.pref_users = self.ax_env.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
 
         # add UAVs
-        self.uavs = self.ax_graph.scatter(x_uavs, y_uavs, s=20, c='r')
+        self.uavs = self.ax_env.scatter(x_uavs, y_uavs, s=20, c='r')
 
         # add coverage of UAVs
         for circle in self.circles:
-            self.ax_graph.add_patch(circle)
+            self.ax_env.add_patch(circle)
 
         # add connection links between UAVs
         c = get_connections(self.l_uav_locs[0], comm_range=self.comm_range)
         lc = LineCollection(c, linestyles=':')
-        self.uav_connection = self.ax_graph.add_collection(lc)
+        self.uav_connection = self.ax_env.add_collection(lc)
 
-        return (self.table,
+        # ----
+        # set up plot axes
+
+        self.line_all, = self.ax_plot.plot([0], self.l_cov_scores_all[0], c='pink', label='Coverage Score (All)')
+        self.line_reg, = self.ax_plot.plot([0], self.l_cov_scores_reg[0], c='gray', label='Coverage Score (Regular)')
+        self.line_pref, = self.ax_plot.plot([0], self.l_cov_scores_pref[0], c='red', label='Coverage Score (Prioritised)')
+        self.line_fidx, = self.ax_plot.plot([0], self.l_fidx[0], c='blue', label='Fairness Index')
+
+        self.ax_plot.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+
+        return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
                 self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
 
     def update(self, i):
-        x_uavs, y_uavs = list(zip(*self.l_uav_locs[i]))
 
-        # Update table
-        self.table.get_celld()[(0, 0)].get_text().set_text(time.strftime(('%H:%M:%S'), time.gmtime(i * self.time_per_epoch)))
-        self.table.get_celld()[(1, 0)].get_text().set_text(str(self.l_cov_scores_all[i]))
-        self.table.get_celld()[(2, 0)].get_text().set_text(str(self.l_cov_scores_reg[i]))
-        self.table.get_celld()[(3, 0)].get_text().set_text(str(self.l_cov_scores_pref[i]))
-        self.table.get_celld()[(4, 0)].get_text().set_text(str(self.l_fidx[i]))
+        # ----
+        # Update env axes
+        x_uavs, y_uavs = list(zip(*self.l_uav_locs[i]))
 
         # Update UAV positions
         self.uavs.set_offsets(np.c_[x_uavs, y_uavs])
@@ -126,7 +129,14 @@ class AnimatedScatter(object):
         c = get_connections(self.l_uav_locs[i], comm_range=self.comm_range)
         self.uav_connection.set_segments(c)
 
-        return (self.table,
+        # ----
+        # update plot axes
+        self.line_all.set_data(self.time[:i+1], self.l_cov_scores_all[:i+1])
+        self.line_reg.set_data(self.time[:i+1], self.l_cov_scores_reg[:i+1])
+        self.line_pref.set_data(self.time[:i+1], self.l_cov_scores_pref[:i+1])
+        self.line_fidx.set_data(self.time[:i+1], self.l_fidx[:i+1])
+
+        return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
                 self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
 
 
@@ -165,15 +175,15 @@ if __name__ == '__main__':
             [50, 0], [0, 50], [0, 0]
         ],
         [
-            [50, 0], [0, 50], [0, 0]
+            [100, 50], [50, 100], [0, 0]
         ],
         [
-            [50, 0], [0, 50], [0, 0]
+            [200, 100], [100, 50], [0, 0]
         ]
     ]
 
-    reg_user_locs = [[10, 20], [10, 20]]
-    pref_user_locs = [[20, 10], [30, 30]]
+    reg_user_locs = [[100, 200], [100, 200]]
+    pref_user_locs = [[200, 100], [300, 300]]
 
     c_scores_all = [0, 0.2, 0.3, 0.4]
     c_scores_reg = [0, 0.1, 0.2, 0.3]
