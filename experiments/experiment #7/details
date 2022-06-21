@@ -1,0 +1,3 @@
+No cov_scores in obs space still
+Changed end of episode to be handled by wrapper instead of when timestep > 1800.
+Reduced distance from 50 to 10.

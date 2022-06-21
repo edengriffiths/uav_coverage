@@ -216,7 +216,7 @@ def show_mp4(env, model):
 if __name__ == '__main__':
     models_dir = "rl-baselines3-zoo/logs/ppo"
 
-    model = PPO.load(f"{models_dir}/uav-v0_34/best_model.zip")
+    model = PPO.load(f"{models_dir}/uav-v0_40/best_model.zip")
 
     env_v = 'v5'
     # models_dir = f"models/{env_v}/PPO"

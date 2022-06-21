@@ -55,7 +55,7 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update,
                                            init_func=self.setup,
                                            frames=self.n_timesteps,
-                                           interval=50,
+                                           interval=150,
                                            repeat=False)
 
     def setup(self):

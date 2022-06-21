@@ -1,10 +1,8 @@
-Users: unsorted
-Reward: fairness and user_scores with penalties for disconnecting and exceeding boundary
+Users: sorted
+Reward: user scores, fairness, user pref with penalties for disconnecting and exceeding boundary
+obs space: continuous w/o user scores or user pref
 
-penalties are a multiple of a reward.
-
-theorise that this incentivises not getting a high reward from providing coverage because if disconnection occurs
-penalty will be higher.
+penalty reduced to 1
+observation space have been normalized
 
 
-Note: Accidentally overwrote. Was much the same as the results of experiment #4

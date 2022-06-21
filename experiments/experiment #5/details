@@ -1,0 +1,5 @@
+Users: sorted
+Reward: fairness and user_scores with penalties for disconnecting and exceeding boundary
+obs space: continuous w/o user scores
+
+Reduced the penalty to 1

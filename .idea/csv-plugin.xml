@@ -1963,6 +1963,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_31/7.monitor.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/rl-baselines3-zoo/logs/ppo/uav-v0_4/0.monitor.csv">
           <value>
             <Attribute>

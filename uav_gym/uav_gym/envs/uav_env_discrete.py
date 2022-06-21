@@ -300,7 +300,7 @@ class UAVCoverage(gym.Env):
 
         p_outside = self.sg.V['P_OUT_BOUNDS'] * outside_count
 
-        return reward - p_dconnect - p_outside
+        return reward - 0.1 * p_dconnect - p_outside
 
 
 if __name__ == '__main__':
