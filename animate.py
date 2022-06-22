@@ -41,7 +41,11 @@ class AnimatedScatter(object):
 
         # set up figures and axes
         # ---
-        self.fig, (self.ax_env, self.ax_plot) = plt.subplots(1, 2)
+        self.fig = plt.figure()
+        gs = gridspec.GridSpec(2, 2)
+        self.ax_env = self.fig.add_subplot(gs[:, :-1])
+        self.ax_cov = self.fig.add_subplot(gs[:-1, -1])
+        self.ax_fidx = self.fig.add_subplot(gs[-1, -1])
 
         # set figure size
         self.fig.set_size_inches(12, 4)
@@ -54,9 +58,18 @@ class AnimatedScatter(object):
         self.ax_env.set_xlim(0, self.sim_size)
         self.ax_env.set_ylim(0, self.sim_size)
 
-        # set ax_plot limits
-        self.ax_plot.set_ylim(0, 1)
-        self.ax_plot.set_xlim(0, max(self.time))
+        # set plot limits
+        self.ax_cov.set_ylim(0, 1)
+        self.ax_cov.set_xlim(0, max(self.time))
+
+        self.ax_cov.tick_params(labelbottom=False)  # remove ticks from bottom
+
+        self.ax_fidx.set_ylim(0, 1)
+        self.ax_fidx.set_xlim(0, max(self.time))
+
+        self.ax_fidx.set_xlabel("Time (s)")
+
+
 
         # initialise patches
         # ---
@@ -102,12 +115,15 @@ class AnimatedScatter(object):
         # ----
         # set up plot axes
 
-        self.line_all, = self.ax_plot.plot([0], self.l_cov_scores_all[0], c='pink', label='Coverage Score (All)')
-        self.line_reg, = self.ax_plot.plot([0], self.l_cov_scores_reg[0], c='gray', label='Coverage Score (Regular)')
-        self.line_pref, = self.ax_plot.plot([0], self.l_cov_scores_pref[0], c='red', label='Coverage Score (Prioritised)')
-        self.line_fidx, = self.ax_plot.plot([0], self.l_fidx[0], c='blue', label='Fairness Index')
+        self.line_all, = self.ax_cov.plot([0], self.l_cov_scores_all[0], c='pink', label='Coverage Score (All)')
+        self.line_reg, = self.ax_cov.plot([0], self.l_cov_scores_reg[0], c='gray', label='Coverage Score (Regular)')
+        self.line_pref, = self.ax_cov.plot([0], self.l_cov_scores_pref[0], c='red', label='Coverage Score (Prioritised)')
 
-        self.ax_plot.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+        self.ax_cov.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+
+        self.line_fidx, = self.ax_fidx.plot([0], self.l_fidx[0], c='blue', label='Fairness Index')
+
+        self.ax_fidx.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
         return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
                 self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
