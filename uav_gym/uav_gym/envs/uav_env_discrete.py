@@ -15,11 +15,12 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, n_uavs: int = None):
+    def __init__(self, n_uavs: int = None, demonstration: bool = False):
         self.sg = Settings()
 
         self.seed()
 
+        self.dem = demonstration
         # ----
         # SIMULATION
         self.sim_size = self.sg.V['SIM_SIZE']
@@ -60,10 +61,15 @@ class UAVCoverage(gym.Env):
         return [seed]
 
     def reset(self):
+        if self.dem:
+            user_locs = np.array(self.sg.V['USER_LOCS'])
+        else:
+            user_locs = np.array(self._gen_user_locs(), dtype=np.float64)
+
         self.state = self.normalize_obs(
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float64),
-                'user_locs': np.array(self._gen_user_locs(), dtype=np.float64),
+                'user_locs': user_locs,
                 'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32),
                 'cov_scores': np.array([0] * self.n_users, dtype=np.float64)
             }
@@ -157,8 +163,8 @@ class UAVCoverage(gym.Env):
         plt.scatter(uav_locs[0], uav_locs[1], color='red')
 
         plt.scatter(user_locs[0], user_locs[1], color='grey', s=2)
-        plt.xlabel("X cordinate")
-        plt.ylabel("Y cordinate")
+        plt.xlabel("X coordinate")
+        plt.ylabel("Y coordinate")
         plt.show()
 
     def _gen_user_locs(self):
@@ -304,34 +310,34 @@ class UAVCoverage(gym.Env):
 
 
 if __name__ == '__main__':
-    env = UAVCoverage()
+    env = UAVCoverage(demonstration=True)
 
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
 
     check_env(env)
 
-    # obs = env.reset()
-    # # print(env.denormalize_obs(obs)['uav_locs'])
-    # n_steps = 100
-    # for _ in range(n_steps):
-    #     # Random action
-    #     action = env.action_space.sample()
-    #     obs, reward, done, info = env.step(action)
-    #     print(reward)
-    #     # print(env.denormalize_obs(obs))
-    #     if done:
-    #         obs = env.reset()
-    #     env.render()
-
-    model = PPO('MultiInputPolicy', env, verbose=1)
-    model.learn(total_timesteps=10**5)
-
     obs = env.reset()
-    env.seed(0)
-    locs = []
-    for _ in range(200):
-        action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-        print(rewards)
+    print(env.denormalize_obs(obs)['user_locs'].tolist())
+    n_steps = 100
+    for _ in range(n_steps):
+        # Random action
+        action = env.action_space.sample()
+        obs, reward, done, info = env.step(action)
+        print(reward)
+        # print(env.denormalize_obs(obs))
+        if done:
+            obs = env.reset()
         env.render()
+
+    # model = PPO('MultiInputPolicy', env, verbose=1)
+    # model.learn(total_timesteps=10**5)
+    #
+    # obs = env.reset()
+    # env.seed(0)
+    # locs = []
+    # for _ in range(200):
+    #     action, _states = model.predict(obs)
+    #     obs, rewards, done, info = env.step(action)
+    #     print(rewards)
+    #     env.render()
