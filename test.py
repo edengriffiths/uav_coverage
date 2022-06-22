@@ -48,9 +48,9 @@ class Environments:
             action, _states = model.predict(obs, deterministic=True)
             obs, rewards, done, info = env.step(action)
 
-        c_scores = env.cov_scores / env.timestep
+        state = env.denormalize_obs(obs)
 
-        return c_scores, obs['pref_users']
+        return state['cov_scores'], state['pref_users']
 
     def get_c_scores_all(self):
         results = self.pool.map(self.get_c_scores_single, self.envs)
