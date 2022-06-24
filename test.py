@@ -180,7 +180,7 @@ def get_data(model):
         new_means, means = np.array(totals) / (i + 1), new_means
 
         print(f"New metrics: {new_means}")
-        print(f"Change in metrics: {abs(new_means - means)}")
+        print(f"Change in metrics: {new_means - means}")
 
         i += 1
         sati = sati[1:] + [not any(abs(new_means - means) > ep)]
