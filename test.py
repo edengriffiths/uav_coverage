@@ -205,6 +205,8 @@ def write_data(exp_num, model):
         settings = uav_gym.envs.env_settings.Settings()
         json.dump(settings.V, f)
 
+    model.save(f"{directory}/model")
+
 
 def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
@@ -227,10 +229,9 @@ def show_mp4(env, model):
 
 
 if __name__ == '__main__':
-    models_dir = "rl-baselines3-zoo/logs/ppo"
+    models_dir = "rl-baselines3-zoo/logs"
 
-    model = PPO.load(f"{models_dir}/uav-v0_45/best_model.zip")
-
+    model = PPO.load(f"{models_dir}/old_reward/ppo/uav-v0_1/best_model")
     env_v = 'v5'
     # models_dir = f"models/{env_v}/PPO"
     # model = PPO.load(f"{models_dir}/1600000.zip")
@@ -239,7 +240,7 @@ if __name__ == '__main__':
     # env.seed(0)
     env.reset()
 
-    exp_num = 8
+    exp_num = 10
 
     directory = f"experiments/experiment #{exp_num}"
 
@@ -253,6 +254,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    # write_data(exp_num, model)
-    # make_mp4(exp_num, env, model)
-    show_mp4(env, model)
+    write_data(exp_num, model)
+    make_mp4(exp_num, env, model)
+    # show_mp4(env, model)
