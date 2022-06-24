@@ -17,9 +17,9 @@ import multiprocessing as multip
 
 
 class Environments:
-    gym_environment = 'uav-v0'
 
-    def __init__(self, environments_n, model):
+    def __init__(self, env_id, environments_n, model):
+        self.env_id = env_id
         self.environments_n = environments_n
         self.cores_count = multip.cpu_count()
         self.envs = []
@@ -37,7 +37,7 @@ class Environments:
     def reset_all_environments(self):
         for env in self.envs:
             env.close()
-        self.envs = [gym.make(self.gym_environment) for _ in range(self.environments_n)]
+        self.envs = [gym.make(self.env_id) for _ in range(self.environments_n)]
 
     @staticmethod
     def get_c_scores_single(env):
@@ -141,9 +141,9 @@ def mean_reg_scores(l_c_scores: np.array([float]), pref_ids: np.array([0 | 1])) 
         ).mean()
 
 
-def get_metrics(model) -> Tuple[float, float, float, float]:
+def get_metrics(env_id, model) -> Tuple[float, float, float, float]:
     # use multiprocessing to
-    with Environments(multip.cpu_count(), model) as envs:
+    with Environments(env_id, multip.cpu_count(), model) as envs:
         results = envs.get_c_scores_all()
         l_c_scores, l_pref_ids = np.array(list(zip(*results)))
 
@@ -162,7 +162,7 @@ def conv_locs(locs, sim_size):
     return list(list(loc) for loc in zip(*locs_))
 
 
-def get_data(model):
+def get_data(env_id, model):
     totals = [0, 0, 0, 0]
 
     new_means = np.array([1, 1, 1, 1])
@@ -173,10 +173,10 @@ def get_data(model):
     sati = [False] * 5
 
     # if the past three iterations satisfied stopping condition, stop.
-    while not all(sati):
+    while not all(sati) or i < 20:
         print(f"iteration: {i}")
 
-        totals = list(map(add, totals, get_metrics(model)))
+        totals = list(map(add, totals, get_metrics(env_id, model)))
         new_means, means = np.array(totals) / (i + 1), new_means
 
         print(f"New metrics: {new_means}")
@@ -189,8 +189,8 @@ def get_data(model):
     return new_means
 
 
-def write_data(exp_num, model):
-    avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = get_data(model)
+def write_data(env_id, exp_num, model):
+    avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = get_data(env_id, model)
 
     directory = f"experiments/experiment #{exp_num}"
 
@@ -229,6 +229,7 @@ def show_mp4(env, model):
 
 
 if __name__ == '__main__':
+    env_id = 'uav-v0'
     models_dir = "rl-baselines3-zoo/logs"
 
     model = PPO.load(f"{models_dir}/old_reward/ppo/uav-v0_1/best_model")
@@ -236,11 +237,11 @@ if __name__ == '__main__':
     # models_dir = f"models/{env_v}/PPO"
     # model = PPO.load(f"{models_dir}/1600000.zip")
 
-    env = gym.make('uav-v0', demonstration=False)
-    # env.seed(0)
-    env.reset()
+    # env = gym.make('uav-v0', demonstration=False)
+    # # env.seed(0)
+    # env.reset()
 
-    exp_num = 10
+    exp_num = 12
 
     directory = f"experiments/experiment #{exp_num}"
 
@@ -254,6 +255,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    write_data(exp_num, model)
-    make_mp4(exp_num, env, model)
+    write_data(env_id, exp_num, model)
+    # make_mp4(exp_num, env, model)
     # show_mp4(env, model)
