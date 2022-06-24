@@ -170,7 +170,7 @@ def get_data(model):
 
     i = 0
     # for the three previous iterations, was the change for all variables smaller than or equal to epsilon?
-    sati = (False, False, False)
+    sati = [False] * 5
 
     # if the past three iterations satisfied stopping condition, stop.
     while not all(sati):
@@ -183,8 +183,8 @@ def get_data(model):
         print(f"Change in metrics: {abs(new_means - means)}")
 
         i += 1
-        sati = (sati[1], sati[2], not any(abs(new_means - means) > ep))
-        print(f"Three prev stopping conditions: {sati}")
+        sati = sati[1:] + [not any(abs(new_means - means) > ep)]
+        print(f"Prev stopping conditions: {sati}")
 
     return new_means
 
