@@ -265,24 +265,40 @@ class UAVCoverage(gym.Env):
         pref_users = state['pref_users']
         cov_scores = state['cov_scores']
 
-        # calculate fairness
-        f_idx = gym_utils.fairness_idx(cov_scores)
+        # # calculate fairness
+        # f_idx = gym_utils.fairness_idx(cov_scores)
+        #
+        # # calculate improvement in total coverage
+        # delta_cov_score = cov_scores - prev_cov_score
+        #
+        # # calculate distance from each user to the closest UAV.
+        # dist = gym_utils.dist_to_users(uav_locs.tolist(), user_locs.tolist())
+        # dist_scores = 1 / (1 + dist)
+        #
+        # def scale_scores(scores):
+        #     return scores + (self.pref_factor - 1) * pref_users * scores
+        #
+        # # both parts have a max values of n_users and a min value of 0.
+        # cov_part = f_idx * sum(scale_scores(delta_cov_score)) / self.n_users
+        # dist_part = sum(scale_scores(dist_scores)) / self.n_users
+        #
+        # return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
 
-        # calculate improvement in total coverage
-        delta_cov_score = cov_scores - prev_cov_score
+        scores = gym_utils.get_scores(
+            uav_locs.tolist(),
+            user_locs.tolist(),
+            self.cov_range,
+            p_factor=self.sg.V['P_OUTSIDE_COV']
+        )
 
-        # calculate distance from each user to the closest UAV.
-        dist = gym_utils.dist_to_users(uav_locs.tolist(), user_locs.tolist())
-        dist_scores = 1 / (1 + dist)
+        f_idx = gym_utils.fairness_idx(cov_scores / self.timestep)
 
-        def scale_scores(scores):
-            return scores + (self.pref_factor - 1) * pref_users * scores
+        # increase the scores of the preferred users by a factor of self.pref_factor.
+        scaled_scores = scores + (self.pref_factor - 1) * pref_users * scores
 
-        # both parts have a max values of n_users and a min value of 0.
-        cov_part = f_idx * sum(scale_scores(delta_cov_score)) / self.n_users
-        dist_part = sum(scale_scores(dist_scores)) / self.n_users
+        mean_score = sum(scaled_scores) / self.n_users
 
-        return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
+        return f_idx * mean_score
 
     def reward_2(self, prev_cov_score, maybe_uav_locs):
         """
@@ -306,7 +322,7 @@ class UAVCoverage(gym.Env):
 
         p_outside = self.sg.V['P_OUT_BOUNDS'] * outside_count
 
-        return reward - 0.1 * p_dconnect - p_outside
+        return reward - p_dconnect - p_outside
 
 
 if __name__ == '__main__':
