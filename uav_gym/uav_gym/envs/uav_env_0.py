@@ -14,7 +14,7 @@ from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
 
-class UAVCoverage1(gym.Env):
+class UAVCoverage0(gym.Env):
     def __init__(self, n_uavs: int = None, demonstration: bool = False):
         self.sg = Settings()
 
@@ -265,40 +265,26 @@ class UAVCoverage1(gym.Env):
         pref_users = state['pref_users']
         cov_scores = state['cov_scores']
 
-        # # calculate fairness
-        # f_idx = gym_utils.fairness_idx(cov_scores)
-        #
-        # # calculate improvement in total coverage
-        # delta_cov_score = cov_scores - prev_cov_score
-        #
-        # # calculate distance from each user to the closest UAV.
-        # dist = gym_utils.dist_to_users(uav_locs.tolist(), user_locs.tolist())
-        # dist_scores = 1 / (1 + dist)
-        #
-        # def scale_scores(scores):
-        #     return scores + (self.pref_factor - 1) * pref_users * scores
-        #
-        # # both parts have a max values of n_users and a min value of 0.
-        # cov_part = f_idx * sum(scale_scores(delta_cov_score)) / self.n_users
-        # dist_part = sum(scale_scores(dist_scores)) / self.n_users
-        #
-        # return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
+        # calculate fairness
+        f_idx = gym_utils.fairness_idx(cov_scores)
+        if f_idx == 1:
+            f_idx = 0
 
-        scores = gym_utils.get_scores(
-            uav_locs.tolist(),
-            user_locs.tolist(),
-            self.cov_range,
-            p_factor=self.sg.V['P_OUTSIDE_COV']
-        )
+        # calculate improvement in total coverage
+        delta_cov_score = cov_scores - prev_cov_score
 
-        f_idx = gym_utils.fairness_idx(cov_scores / self.timestep)
+        # calculate distance from each user to the closest UAV.
+        dist = gym_utils.dist_to_users(uav_locs.tolist(), user_locs.tolist())
+        dist_scores = 1 / (1 + dist)
 
-        # increase the scores of the preferred users by a factor of self.pref_factor.
-        scaled_scores = scores + (self.pref_factor - 1) * pref_users * scores
+        def scale_scores(scores):
+            return scores + (self.pref_factor - 1) * pref_users * scores
 
-        mean_score = sum(scaled_scores) / self.n_users
+        # both parts have a max values of n_users and a min value of 0.
+        cov_part = f_idx * sum(scale_scores(delta_cov_score)) / self.n_users
+        dist_part = sum(scale_scores(dist_scores)) / self.n_users
 
-        return f_idx * mean_score
+        return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
 
     def reward_2(self, prev_cov_score, maybe_uav_locs):
         """
