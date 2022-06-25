@@ -14,14 +14,14 @@ class Settings(object):
 
             # ----
             # USER SETTINGS
-            'NUM_USERS': 100,
+            'NUM_USERS': 30,
             'BOUNDARY_FACTOR': 2,
 
             # ----
             # UAV SETTINGS
-            'NUM_UAV': 1,
+            'NUM_UAV': 3,
             'COV_RANGE': 200,  # radius of the coverage range on the ground
-            'COMM_RANGE': 1500,  # distance UAVs can be and still communicate with each other or home base.
+            'COMM_RANGE': 500,  # distance UAVs can be and still communicate with each other or home base.
             'DIST': 50,
             'INIT_POSITION': [0, 0],
 
