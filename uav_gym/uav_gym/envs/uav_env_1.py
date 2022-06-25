@@ -14,7 +14,7 @@ from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
 
-class UAVCoverage(gym.Env):
+class UAVCoverage_old_reward(gym.Env):
     def __init__(self, n_uavs: int = None, demonstration: bool = False):
         self.sg = Settings()
 
