@@ -87,119 +87,160 @@ def get_graph_data(env, model):
     return reg_user_locs, pref_user_locs, np.array(uav_locs), c_scores_all, c_scores_reg, c_scores_pref, fidx
 
 
-def mean_cov_score(l_c_scores: np.array([[float]])) -> float:
-    return l_c_scores.mean()
+def mean_cov_score(c_scores: np.ndarray) -> float:
+    return c_scores.mean()
 
 
-def get_fair_ind(c_scores: np.array([float]), n_users: int) -> float:
-    # if all the coverage scores are zero, the fairness index is 1.
-    if any(c_scores):
-        return sum(c_scores) ** 2 / (n_users * sum(c_scores ** 2))
-    else:
-        return 1.0
-
-
-def mean_fair_ind(l_c_scores: np.array([[float]]), n_users: int) -> float:
-    return np.array([get_fair_ind(c_scores, n_users) for c_scores in l_c_scores]).mean()
-
-
-def get_pref_scores(c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> np.array([float]):
-    # add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
+def mean_pref_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
+    """
+    :param c_scores: a list of c_scores from one environment episode.
+    :param pref_ids: a list of pref_ids from the same environment.
+    :return: the mean score of prioritised users.
+    """
     _c_scores = c_scores + 1
     pref = pref_ids * _c_scores
-    return pref[pref != 0] - 1
+    return (pref[pref != 0] - 1).mean()
 
 
-def get_reg_scores(c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> np.array([float]):
+def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
+    """
+    :param c_scores: a list of c_scores from one environment episode.
+    :param pref_ids: a list of pref_ids from the same environment.
+    :return: the mean score of regular users.
+    """
     # add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
     _c_scores = c_scores + 1
     reg = (1 - pref_ids) * _c_scores
-    return reg[reg != 0] - 1
+    return (reg[reg != 0] - 1).mean()
 
 
-def mean_pref_scores(l_c_scores: np.array([[float]]), pref_ids: np.array([[0 | 1]])) -> float:
-    return \
-        np.concatenate(
-            np.array(
-                list(
-                    map(get_pref_scores, l_c_scores, pref_ids)
-                ),
-                dtype=object
-            )
-        ).mean()
+def get_interquartile_vals(l):
+    """
+    :param l: l must be greater than 3.
+    :return:
+    """
+    l.sort()
+    q1 = len(l) // 4
+    q3 = len(l) - q1
+    return l[q1:q3]
 
 
-def mean_reg_scores(l_c_scores: np.array([float]), pref_ids: np.array([0 | 1])) -> float:
-    return \
-        np.concatenate(
-            np.array(
-                list(
-                    map(get_reg_scores, l_c_scores, pref_ids)
-                ),
-                dtype=object
-            )
-        ).mean()
-
-
-def get_metrics(env_id, model) -> Tuple[float, float, float, float]:
-    # use multiprocessing to
-    with Environments(env_id, multip.cpu_count(), model) as envs:
-        results = envs.get_c_scores_all()
-        l_c_scores, l_pref_ids = np.array(list(zip(*results)))
-
-    n_users = len(l_pref_ids[0])
+def get_ep_vals(c_scores, pref_ids):
+    n_users = len(c_scores)
 
     return (
-        mean_cov_score(l_c_scores),
-        mean_fair_ind(l_c_scores, n_users),
-        mean_pref_scores(l_c_scores, l_pref_ids),
-        mean_reg_scores(l_c_scores, l_pref_ids)
+        mean_cov_score(c_scores),
+        gym_utils.fairness_idx(c_scores),
+        mean_reg_score(c_scores, pref_ids),
+        mean_pref_score(c_scores, pref_ids)
     )
 
 
-def conv_locs(locs, sim_size):
-    locs_ = locs * sim_size
-    return list(list(loc) for loc in zip(*locs_))
-
-
 def get_data(env_id, model):
-    totals = [0, 0, 0, 0]
+    l_c_scores = []
+    l_fidx = []
+    l_reg_scores = []
+    l_pref_scores = []
 
-    new_means = np.array([1, 1, 1, 1])
-    ep = 0.01
+    iq_means = [1, 1, 1, 1]
+    stds = [0, 0, 0, 0]
+    eps = 0.001
 
     i = 0
-    # for the three previous iterations, was the change for all variables smaller than or equal to epsilon?
+    # for the five previous iterations, was the change for all variables smaller than or equal to epsilon?
     sati = [False] * 5
 
-    # if the past three iterations satisfied stopping condition, stop.
-    while not all(sati) or i < 20:
+    # if the past five iterations satisfied stopping condition and more than 100 iterations, stop.
+    while not all(sati) or i < 100:
         print(f"iteration: {i}")
 
-        totals = list(map(add, totals, get_metrics(env_id, model)))
-        new_means, means = np.array(totals) / (i + 1), new_means
+        # use multiprocessing to get coverage scores
+        with Environments(env_id, multip.cpu_count(), model) as envs:
+            results = envs.get_c_scores_all()
+            l_c, l_p = list(zip(*results))
 
-        print(f"New metrics: {new_means}")
-        print(f"Change in metrics: {new_means - means}")
+        # get a list of lists, where the inner lists are the scores for n_cpu episodes.
+        vals = list(zip(*map(get_ep_vals, l_c, l_p)))
+
+        l_c_scores += vals[0]
+        l_fidx += vals[1]
+        l_reg_scores += vals[2]
+        l_pref_scores += vals[3]
+
+        iq_c_scores = get_interquartile_vals(l_c_scores)
+        iq_fidx = get_interquartile_vals(l_fidx)
+        iq_reg_scores = get_interquartile_vals(l_reg_scores)
+        iq_pref_scores = get_interquartile_vals(l_pref_scores)
+
+        prev_means = iq_means.copy()
+
+        iq_means = [
+            np.mean(iq_c_scores),
+            np.mean(iq_fidx),
+            np.mean(iq_reg_scores),
+            np.mean(iq_pref_scores)
+        ]
+
+        stds = [
+            np.std(iq_c_scores),
+            np.std(iq_fidx),
+            np.std(iq_reg_scores),
+            np.std(iq_pref_scores)
+        ]
+
+        change = np.array(iq_means) - np.array(prev_means)
+        print(f"New metrics: {iq_means}")
+        print(f"New stds: {stds}")
+        print(f"Change in metrics: {change}")
 
         i += 1
-        sati = sati[1:] + [not any(abs(new_means - means) > ep)]
+        sati = sati[1:] + [not any(abs(change) > eps)]
         print(f"Prev stopping conditions: {sati}")
 
-    return new_means
+    return iq_means, stds
+
+
+#
+#
+# def get_data(env_id, model):
+#
+#     totals = np.array([0, 0, 0, 0])
+#
+#     new_means = np.array([1, 1, 1, 1])
+#     ep = 0.01
+#
+#     i = 0
+#     # for the three previous iterations, was the change for all variables smaller than or equal to epsilon?
+#     sati = [False] * 5
+#
+#     # if the past three iterations satisfied stopping condition, stop.
+#     while not all(sati) or i < 100:
+#         print(f"iteration: {i}")
+#
+#         totals = totals + np.array(get_metrics(env_id, model))
+#         new_means, means = np.array(totals) / (i + 1), new_means
+#
+#         print(f"New metrics: {new_means}")
+#         print(f"Change in metrics: {new_means - means}")
+#
+#         i += 1
+#         sati = sati[1:] + [not any(abs(new_means - means) > ep)]
+#         print(f"Prev stopping conditions: {sati}")
+#
+#     return new_means
 
 
 def write_data(env_id, exp_num, model):
-    avg_cov_score, avg_fair_ind, avg_pref_score, avg_reg_score = get_data(env_id, model)
+    iq_means, stds = get_data(env_id, model)
 
     directory = f"experiments/experiment #{exp_num}"
 
     with open(f"{directory}/data", 'w') as f:
         f.write(
-            f"Mean coverage score: {avg_cov_score} \n"
-            f"Fairness index: {avg_fair_ind} \n"
-            f"Mean preferred score: {avg_pref_score} \n"
-            f"Mean regular score: {avg_reg_score} \n")
+            f"Mean coverage score: {iq_means[0]} ± {stds[0]} \n"
+            f"Fairness index: {iq_means[1]} ± {stds[1]} \n"
+            f"Mean preferred score: {iq_means[2]} ± {stds[2]} \n"
+            f"Mean regular score: {iq_means[3]} ± {stds[3]} \n")
 
     with open(f"{directory}/settings", 'w') as f:
         settings = uav_gym.envs.env_settings.Settings()
@@ -254,6 +295,7 @@ if __name__ == '__main__':
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
+
 
     write_data(env_id, exp_num, model)
     # make_mp4(exp_num, env, model)
