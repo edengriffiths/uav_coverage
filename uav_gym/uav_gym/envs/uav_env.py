@@ -53,6 +53,7 @@ class UAVCoverage(gym.Env):
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = self._observation_space_0()
 
+        self.disconnect_count = 0
         self.state = None
         self.timestep = 0
 
@@ -307,6 +308,8 @@ class UAVCoverage(gym.Env):
         )
 
         p_outside = self.sg.V['P_OUT_BOUNDS'] * outside_count
+
+        self.disconnect_count += dconnect_count
 
         return reward - p_dconnect - p_outside
 
