@@ -7,3 +7,8 @@ from uav_gym.envs.uav_env_5 import UAVCoverage5
 from uav_gym.envs.uav_env_6 import UAVCoverage6
 from uav_gym.envs.uav_env_7 import UAVCoverage7
 from uav_gym.envs.uav_env_8 import UAVCoverage8
+from uav_gym.envs.uav_env_9 import UAVCoverage9
+from uav_gym.envs.uav_env_10 import UAVCoverage10
+from uav_gym.envs.uav_env_11 import UAVCoverage11
+from uav_gym.envs.uav_env_12 import UAVCoverage12
+

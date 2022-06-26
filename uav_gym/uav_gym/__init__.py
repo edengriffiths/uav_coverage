@@ -54,3 +54,27 @@ register(
     entry_point='uav_gym.envs:UAVCoverage8',
     max_episode_steps=600  # each step is 3 seconds. 1800 seconds is the maximum flight time of all the UAVs
 )
+
+register(
+    id='uav-v9',
+    entry_point='uav_gym.envs:UAVCoverage9',
+    max_episode_steps=600  # each step is 3 seconds. 1800 seconds is the maximum flight time of all the UAVs
+)
+
+register(
+    id='uav-v10',
+    entry_point='uav_gym.envs:UAVCoverage10',
+    max_episode_steps=600  # each step is 3 seconds. 1800 seconds is the maximum flight time of all the UAVs
+)
+
+register(
+    id='uav-v11',
+    entry_point='uav_gym.envs:UAVCoverage11',
+    max_episode_steps=600  # each step is 3 seconds. 1800 seconds is the maximum flight time of all the UAVs
+)
+
+register(
+    id='uav-v12',
+    entry_point='uav_gym.envs:UAVCoverage12',
+    max_episode_steps=600  # each step is 3 seconds. 1800 seconds is the maximum flight time of all the UAVs
+)
