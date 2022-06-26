@@ -1,0 +1,7 @@
+!!python/object/apply:collections.OrderedDict
+- - - n_envs
+    - 8
+  - - n_timesteps
+    - 10000000.0
+  - - policy
+    - MultiInputPolicy
