@@ -187,7 +187,7 @@ def get_data(env_id, model):
 
         i += 1
 
-    return df_summarised_nout, df_summarised_all
+    return df_summarised_all, df_summarised_nout
 
 
 def write_data(env_id, exp_num, model):
