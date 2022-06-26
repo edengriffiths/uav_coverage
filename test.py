@@ -97,9 +97,11 @@ def mean_pref_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     :param pref_ids: a list of pref_ids from the same environment.
     :return: the mean score of prioritised users.
     """
-    _c_scores = c_scores + 1
-    pref = pref_ids * _c_scores
-    return (pref[pref != 0] - 1).mean()
+    filt_c_scores = c_scores[pref_ids.astype(bool)]
+    if len(filt_c_scores) == 0:
+        return 0
+    else:
+        return filt_c_scores.mean()
 
 
 def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
@@ -108,10 +110,11 @@ def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     :param pref_ids: a list of pref_ids from the same environment.
     :return: the mean score of regular users.
     """
-    # add 1 to coverage score and then subtract it to handle the case where the coverage score equals 0.
-    _c_scores = c_scores + 1
-    reg = (1 - pref_ids) * _c_scores
-    return (reg[reg != 0] - 1).mean()
+    filt_c_scores = c_scores[~pref_ids.astype(bool)]
+    if len(filt_c_scores) == 0:
+        return 0
+    else:
+        return filt_c_scores.mean()
 
 
 def get_interquartile_vals(l):
@@ -119,28 +122,30 @@ def get_interquartile_vals(l):
     :param l: l must be greater than 3.
     :return:
     """
+    n = len(l)
     l.sort()
-    q1 = len(l) // 4
-    q3 = len(l) - q1
+
+    q1 = n // 4
+    q3 = n - q1
+
     return l[q1:q3]
 
 
 def get_ep_vals(c_scores, pref_ids):
-    n_users = len(c_scores)
 
     return (
         mean_cov_score(c_scores),
         gym_utils.fairness_idx(c_scores),
-        mean_reg_score(c_scores, pref_ids),
-        mean_pref_score(c_scores, pref_ids)
+        mean_pref_score(c_scores, pref_ids),
+        mean_reg_score(c_scores, pref_ids)
     )
 
 
 def get_data(env_id, model):
     l_c_scores = []
     l_fidx = []
-    l_reg_scores = []
     l_pref_scores = []
+    l_reg_scores = []
 
     iq_means = [1, 1, 1, 1]
     stds = [0, 0, 0, 0]
@@ -164,28 +169,28 @@ def get_data(env_id, model):
 
         l_c_scores += vals[0]
         l_fidx += vals[1]
-        l_reg_scores += vals[2]
-        l_pref_scores += vals[3]
+        l_pref_scores += vals[2]
+        l_reg_scores += vals[3]
 
         iq_c_scores = get_interquartile_vals(l_c_scores)
         iq_fidx = get_interquartile_vals(l_fidx)
-        iq_reg_scores = get_interquartile_vals(l_reg_scores)
         iq_pref_scores = get_interquartile_vals(l_pref_scores)
+        iq_reg_scores = get_interquartile_vals(l_reg_scores)
 
         prev_means = iq_means.copy()
 
         iq_means = [
             np.mean(iq_c_scores),
             np.mean(iq_fidx),
-            np.mean(iq_reg_scores),
-            np.mean(iq_pref_scores)
+            np.mean(iq_pref_scores),
+            np.mean(iq_reg_scores)
         ]
 
         stds = [
             np.std(iq_c_scores),
             np.std(iq_fidx),
-            np.std(iq_reg_scores),
-            np.std(iq_pref_scores)
+            np.std(iq_pref_scores),
+            np.std(iq_reg_scores)
         ]
 
         change = np.array(iq_means) - np.array(prev_means)
@@ -198,36 +203,6 @@ def get_data(env_id, model):
         print(f"Prev stopping conditions: {sati}")
 
     return iq_means, stds
-
-
-#
-#
-# def get_data(env_id, model):
-#
-#     totals = np.array([0, 0, 0, 0])
-#
-#     new_means = np.array([1, 1, 1, 1])
-#     ep = 0.01
-#
-#     i = 0
-#     # for the three previous iterations, was the change for all variables smaller than or equal to epsilon?
-#     sati = [False] * 5
-#
-#     # if the past three iterations satisfied stopping condition, stop.
-#     while not all(sati) or i < 100:
-#         print(f"iteration: {i}")
-#
-#         totals = totals + np.array(get_metrics(env_id, model))
-#         new_means, means = np.array(totals) / (i + 1), new_means
-#
-#         print(f"New metrics: {new_means}")
-#         print(f"Change in metrics: {new_means - means}")
-#
-#         i += 1
-#         sati = sati[1:] + [not any(abs(new_means - means) > ep)]
-#         print(f"Prev stopping conditions: {sati}")
-#
-#     return new_means
 
 
 def write_data(env_id, exp_num, model):
@@ -279,10 +254,10 @@ if __name__ == '__main__':
     # model = PPO.load(f"{models_dir}/1600000.zip")
 
     # env = gym.make('uav-v0', demonstration=False)
-    # # env.seed(0)
+    # env.seed(0)
     # env.reset()
 
-    exp_num = 12
+    exp_num = 14
 
     directory = f"experiments/experiment #{exp_num}"
 
