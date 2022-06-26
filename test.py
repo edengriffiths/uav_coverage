@@ -42,7 +42,7 @@ class Environments:
         self.envs = [gym.make(self.env_id) for _ in range(self.environments_n)]
 
     @staticmethod
-    def get_c_scores_single(env):
+    def get_data_single(env):
         obs = env.reset()
         done = False
         while not done:
@@ -52,10 +52,10 @@ class Environments:
 
         state = env.denormalize_obs(obs)
 
-        return state['cov_scores'], state['pref_users']
+        return state['cov_scores'], state['pref_users'], env.disconnect_count
 
-    def get_c_scores_all(self):
-        results = self.pool.map(self.get_c_scores_single, self.envs)
+    def get_data_all(self):
+        results = self.pool.map(self.get_data_single, self.envs)
         return results
 
 
@@ -89,12 +89,13 @@ def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
         return filt_c_scores.mean()
 
 
-def get_ep_vals(c_scores, pref_ids):
+def get_ep_vals(c_scores, pref_ids, dconnects):
     return (
         mean_cov_score(c_scores),
         gym_utils.fairness_idx(c_scores),
         mean_pref_score(c_scores, pref_ids),
-        mean_reg_score(c_scores, pref_ids)
+        mean_reg_score(c_scores, pref_ids),
+        dconnects
     )
 
 
@@ -118,18 +119,23 @@ def exclude_outliers(df_metrics: pd.DataFrame) -> pd.DataFrame:
     q3_fidx = df_metrics['f idx'].quantile(0.75)
     iqr_fidx = q3_fidx - q1_fidx
 
+    q1_dconn = df_metrics['dconnects'].quantile(0.25)
+    q3_dconn = df_metrics['dconnects'].quantile(0.75)
+    iqr_dconn = q3_dconn - q1_dconn
+
     df_filtered = df_metrics.query(
         '(@q1_c_all - 1.5 * @iqr_c_all) <= `cov (all)` <= (@q3_c_all + 1.5 * @iqr_c_all) &'
         '(@q1_c_pref - 1.5 * @iqr_c_pref) <= `cov (pref)` <= (@q3_c_pref + 1.5 * @iqr_c_pref) &'
         '(@q1_c_reg - 1.5 * @iqr_c_reg) <= `cov (reg)` <= (@q3_c_reg + 1.5 * @iqr_c_reg) &'
-        '(@q1_fidx - 1.5 * @iqr_fidx) <= `f idx` <= (@q3_fidx + 1.5 * @iqr_fidx)'
+        '(@q1_fidx - 1.5 * @iqr_fidx) <= `f idx` <= (@q3_fidx + 1.5 * @iqr_fidx) &'
+        '(@q1_dconn - 1.5 * @iqr_dconn) <= `dconnects` <= (@q3_dconn + 1.5 * @iqr_dconn)'
     )
 
     return df_filtered
 
 
 def get_data(env_id, model):
-    metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)']
+    metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)', 'dconnects']
 
     df_metrics = pd.DataFrame(columns=metric_names)
 
@@ -148,16 +154,16 @@ def get_data(env_id, model):
     while not all(sati) or i < 100:
         print(f"iteration: {i}")
 
-        # use multiprocessing to get coverage scores and pref_ids
+        # use multiprocessing to get coverage scores, pref_ids and disconnect counts.
         with Environments(env_id, multip.cpu_count(), model) as envs:
-            results = envs.get_c_scores_all()
-            l_c, l_p = list(zip(*results))
+            results = envs.get_data_all()
+            l_c, l_p, l_dc = list(zip(*results))
 
         # append the new metrics to the df
         df_metrics = pd.concat(
             [df_metrics,
              pd.DataFrame(
-                 list(map(get_ep_vals, l_c, l_p)),
+                 list(map(get_ep_vals, l_c, l_p, l_dc)),
                  columns=metric_names
              )]
         )
@@ -267,18 +273,18 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         env_id = sys.argv[1]
     else:
-        env_id = 'uav-v0'
+        env_id = 'uav-v2'
 
     models_dir = "rl-baselines3-zoo/logs"
 
     model = PPO.load(f"{models_dir}/ppo/{env_id}_1/best_model")
     env_v = 'v5'
 
-    # env = gym.make('uav-v0', demonstration=False)
+    env = gym.make(env_id, demonstration=False)
     # env.seed(0)
-    # env.reset()
+    env.reset()
 
-    exp_num = 14
+    exp_num = env_id
 
     directory = f"experiments/experiment #{exp_num}"
 
