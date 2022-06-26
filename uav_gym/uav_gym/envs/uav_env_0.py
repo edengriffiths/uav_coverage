@@ -1,4 +1,5 @@
 from uav_gym.envs.uav_env import UAVCoverage
+from uav_gym import utils as gym_utils
 
 
 class UAVCoverage0(UAVCoverage):

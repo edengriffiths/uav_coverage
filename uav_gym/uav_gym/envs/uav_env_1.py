@@ -1,5 +1,5 @@
 from uav_gym.envs.uav_env import UAVCoverage
-
+from uav_gym import utils as gym_utils
 
 class UAVCoverage1(UAVCoverage):
     def reward_1(self, prev_cov_score):

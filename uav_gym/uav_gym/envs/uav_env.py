@@ -53,7 +53,7 @@ class UAVCoverage(gym.Env):
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = self._observation_space_0()
 
-        self.disconnect_count = 0
+        self.disconnect_count = 0.0
         self.state = None
         self.timestep = 0
 
