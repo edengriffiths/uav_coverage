@@ -11,7 +11,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import json
+
 import os
+import sys
 
 import multiprocessing as multip
 
@@ -261,13 +263,16 @@ def show_mp4(env, model):
 
 
 if __name__ == '__main__':
-    env_id = 'uav-v0'
+
+    if len(sys.argv) == 2:
+        env_id = sys.argv[1]
+    else:
+        env_id = 'uav-v0'
+
     models_dir = "rl-baselines3-zoo/logs"
 
-    model = PPO.load(f"{models_dir}/old_reward/ppo/uav-v0_1/best_model")
+    model = PPO.load(f"{models_dir}/ppo/{env_id}_1/best_model")
     env_v = 'v5'
-    # models_dir = f"models/{env_v}/PPO"
-    # model = PPO.load(f"{models_dir}/1600000.zip")
 
     # env = gym.make('uav-v0', demonstration=False)
     # env.seed(0)
