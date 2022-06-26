@@ -7,7 +7,7 @@ import uav_gym.utils as gym_utils
 
 from stable_baselines3 import PPO
 import numpy as np
-from operator import add
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import json
@@ -57,36 +57,6 @@ class Environments:
         return results
 
 
-def get_graph_data(env, model):
-    uav_locs = []
-    c_scores_all = []
-    c_scores_reg = []
-    c_scores_pref = []
-    fidx = []
-
-    obs = env.reset()
-
-    user_locs = env.denormalize_obs(obs)['user_locs']
-    pref_users = obs['pref_users'].astype(bool)
-    reg_user_locs = user_locs[~pref_users]
-    pref_user_locs = user_locs[pref_users]
-
-    done = False
-    while not done:
-        action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-
-        c_scores = env.denormalize_obs(obs)['cov_scores']
-
-        uav_locs.append(env.denormalize_obs(obs)['uav_locs'])
-        c_scores_all.append(np.round(c_scores.mean(), 4))
-        c_scores_reg.append(np.round(c_scores[~pref_users].mean(), 4))
-        c_scores_pref.append(np.round(c_scores[pref_users].mean(), 4))
-        fidx.append(np.round(gym_utils.fairness_idx(c_scores), 4))
-
-    return reg_user_locs, pref_user_locs, np.array(uav_locs), c_scores_all, c_scores_reg, c_scores_pref, fidx
-
-
 def mean_cov_score(c_scores: np.ndarray) -> float:
     return c_scores.mean()
 
@@ -117,22 +87,7 @@ def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
         return filt_c_scores.mean()
 
 
-def get_interquartile_vals(l):
-    """
-    :param l: l must be greater than 3.
-    :return:
-    """
-    n = len(l)
-    l.sort()
-
-    q1 = n // 4
-    q3 = n - q1
-
-    return l[q1:q3]
-
-
 def get_ep_vals(c_scores, pref_ids):
-
     return (
         mean_cov_score(c_scores),
         gym_utils.fairness_idx(c_scores),
@@ -141,81 +96,110 @@ def get_ep_vals(c_scores, pref_ids):
     )
 
 
+def exclude_outliers(df_metrics: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filter out all rows that have an outlier in any columns.
+    """
+    q1_c_all = df_metrics['cov (all)'].quantile(0.25)
+    q3_c_all = df_metrics['cov (all)'].quantile(0.75)
+    iqr_c_all = q3_c_all - q1_c_all
+
+    q1_c_pref = df_metrics['cov (pref)'].quantile(0.25)
+    q3_c_pref = df_metrics['cov (pref)'].quantile(0.75)
+    iqr_c_pref = q3_c_pref - q1_c_pref
+
+    q1_c_reg = df_metrics['cov (reg)'].quantile(0.25)
+    q3_c_reg = df_metrics['cov (reg)'].quantile(0.75)
+    iqr_c_reg = q3_c_reg - q1_c_reg
+
+    q1_fidx = df_metrics['f idx'].quantile(0.25)
+    q3_fidx = df_metrics['f idx'].quantile(0.75)
+    iqr_fidx = q3_fidx - q1_fidx
+
+    df_filtered = df_metrics.query(
+        '(@q1_c_all - 1.5 * @iqr_c_all) <= `cov (all)` <= (@q3_c_all + 1.5 * @iqr_c_all) &'
+        '(@q1_c_pref - 1.5 * @iqr_c_pref) <= `cov (pref)` <= (@q3_c_pref + 1.5 * @iqr_c_pref) &'
+        '(@q1_c_reg - 1.5 * @iqr_c_reg) <= `cov (reg)` <= (@q3_c_reg + 1.5 * @iqr_c_reg) &'
+        '(@q1_fidx - 1.5 * @iqr_fidx) <= `f idx` <= (@q3_fidx + 1.5 * @iqr_fidx)'
+    )
+
+    return df_filtered
+
+
 def get_data(env_id, model):
-    l_c_scores = []
-    l_fidx = []
-    l_pref_scores = []
-    l_reg_scores = []
+    metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)']
 
-    iq_means = [1, 1, 1, 1]
-    stds = [0, 0, 0, 0]
-    eps = 0.001
+    df_metrics = pd.DataFrame(columns=metric_names)
 
-    i = 0
+    # summarised metrics including outliers
+    df_summarised_all = pd.DataFrame(index=metric_names)
+
+    # summarised metrics excluding outliers
+    df_summarised_nout = pd.DataFrame(index=metric_names)
+
     # for the five previous iterations, was the change for all variables smaller than or equal to epsilon?
+    eps = 0.001
     sati = [False] * 5
 
+    i = 0
     # if the past five iterations satisfied stopping condition and more than 100 iterations, stop.
     while not all(sati) or i < 100:
         print(f"iteration: {i}")
 
-        # use multiprocessing to get coverage scores
+        # use multiprocessing to get coverage scores and pref_ids
         with Environments(env_id, multip.cpu_count(), model) as envs:
             results = envs.get_c_scores_all()
             l_c, l_p = list(zip(*results))
 
-        # get a list of lists, where the inner lists are the scores for n_cpu episodes.
-        vals = list(zip(*map(get_ep_vals, l_c, l_p)))
+        # append the new metrics to the df
+        df_metrics = pd.concat(
+            [df_metrics,
+             pd.DataFrame(
+                 list(map(get_ep_vals, l_c, l_p)),
+                 columns=metric_names
+             )]
+        )
 
-        l_c_scores += vals[0]
-        l_fidx += vals[1]
-        l_pref_scores += vals[2]
-        l_reg_scores += vals[3]
+        df_filtered = exclude_outliers(df_metrics)
 
-        iq_c_scores = get_interquartile_vals(l_c_scores)
-        iq_fidx = get_interquartile_vals(l_fidx)
-        iq_pref_scores = get_interquartile_vals(l_pref_scores)
-        iq_reg_scores = get_interquartile_vals(l_reg_scores)
+        # if first iteration, don't calculate change in means.
+        if i == 0:
+            df_summarised_all = df_metrics.describe(include='all')
+            df_summarised_nout = df_filtered.describe(include='all')
 
-        prev_means = iq_means.copy()
+            print(df_summarised_nout)
+        else:
+            prev_means = df_summarised_nout.loc['mean'].copy()
 
-        iq_means = [
-            np.mean(iq_c_scores),
-            np.mean(iq_fidx),
-            np.mean(iq_pref_scores),
-            np.mean(iq_reg_scores)
-        ]
+            df_summarised_all = df_metrics.describe(include='all')
 
-        stds = [
-            np.std(iq_c_scores),
-            np.std(iq_fidx),
-            np.std(iq_pref_scores),
-            np.std(iq_reg_scores)
-        ]
+            df_summarised_nout = df_filtered.describe(include='all')
 
-        change = np.array(iq_means) - np.array(prev_means)
-        print(f"New metrics: {iq_means}")
-        print(f"New stds: {stds}")
-        print(f"Change in metrics: {change}")
+            change = df_summarised_nout.loc['mean'] - prev_means
+
+            sati = sati[1:] + [not any(abs(change) > eps)]
+
+            print(df_summarised_nout)
+            print(f"Change in means_nout: {change.tolist()}")
+            print(f"Prev stopping conditions: {sati}")
 
         i += 1
-        sati = sati[1:] + [not any(abs(change) > eps)]
-        print(f"Prev stopping conditions: {sati}")
 
-    return iq_means, stds
+    return df_summarised_nout, df_summarised_all
 
 
 def write_data(env_id, exp_num, model):
-    iq_means, stds = get_data(env_id, model)
+    df_all, df_nout = get_data(env_id, model)
 
     directory = f"experiments/experiment #{exp_num}"
 
-    with open(f"{directory}/data", 'w') as f:
+    with open(f"{directory}/data_all.csv", 'w') as f:
         f.write(
-            f"Mean coverage score: {iq_means[0]} ± {stds[0]} \n"
-            f"Fairness index: {iq_means[1]} ± {stds[1]} \n"
-            f"Mean preferred score: {iq_means[2]} ± {stds[2]} \n"
-            f"Mean regular score: {iq_means[3]} ± {stds[3]} \n")
+            df_all.to_csv())
+
+    with open(f"{directory}/data_nout.csv", 'w') as f:
+        f.write(
+            df_nout.to_csv())
 
     with open(f"{directory}/settings", 'w') as f:
         settings = uav_gym.envs.env_settings.Settings()
@@ -224,9 +208,40 @@ def write_data(env_id, exp_num, model):
     model.save(f"{directory}/model")
 
 
+def get_graph_data(env, model):
+    uav_locs = []
+    c_scores_all = []
+    c_scores_reg = []
+    c_scores_pref = []
+    fidx = []
+
+    obs = env.reset()
+
+    user_locs = env.denormalize_obs(obs)['user_locs']
+    pref_users = obs['pref_users'].astype(bool)
+    reg_user_locs = user_locs[~pref_users]
+    pref_user_locs = user_locs[pref_users]
+
+    done = False
+    while not done:
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+
+        c_scores = env.denormalize_obs(obs)['cov_scores']
+
+        uav_locs.append(env.denormalize_obs(obs)['uav_locs'])
+        c_scores_all.append(np.round(c_scores.mean(), 4))
+        c_scores_reg.append(np.round(c_scores[~pref_users].mean(), 4))
+        c_scores_pref.append(np.round(c_scores[pref_users].mean(), 4))
+        fidx.append(np.round(gym_utils.fairness_idx(c_scores), 4))
+
+    return reg_user_locs, pref_user_locs, np.array(uav_locs), c_scores_all, c_scores_reg, c_scores_pref, fidx
+
+
 def make_mp4(exp_num, env, model):
     directory = f"experiments/experiment #{exp_num}"
-    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env, model)
+    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env,
+                                                                                                                model)
     a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
                                 c_scores_all, c_scores_reg, c_scores_pref, fidx,
                                 cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
@@ -237,7 +252,8 @@ def make_mp4(exp_num, env, model):
 
 
 def show_mp4(env, model):
-    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env, model)
+    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env,
+                                                                                                                model)
     a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
                                 c_scores_all, c_scores_reg, c_scores_pref, fidx,
                                 cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
@@ -270,7 +286,6 @@ if __name__ == '__main__':
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
-
 
     write_data(env_id, exp_num, model)
     # make_mp4(exp_num, env, model)
