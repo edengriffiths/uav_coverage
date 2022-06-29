@@ -2,9 +2,9 @@ from uav_gym.envs.uav_env import UAVCoverage
 from uav_gym import utils as gym_utils
 
 
-class UAVCoverage8(UAVCoverage):
+class UAVCoverage13(UAVCoverage):
 
-    def reward_13(self, prev_cov_score):
+    def reward_1(self, prev_cov_score):
         """
         Includes user scores, fairness, and user prioritisation
         """
