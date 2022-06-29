@@ -11,4 +11,8 @@ from uav_gym.envs.uav_env_9 import UAVCoverage9
 from uav_gym.envs.uav_env_10 import UAVCoverage10
 from uav_gym.envs.uav_env_11 import UAVCoverage11
 from uav_gym.envs.uav_env_12 import UAVCoverage12
+from uav_gym.envs.uav_env_13 import UAVCoverage13
+from uav_gym.envs.uav_env_14 import UAVCoverage14
+from uav_gym.envs.uav_env_15 import UAVCoverage15
+from uav_gym.envs.uav_env_16 import UAVCoverage16
 
