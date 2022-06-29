@@ -151,7 +151,7 @@ def get_data(env_id, model):
 
     i = 0
     # if the past five iterations satisfied stopping condition and more than 100 iterations, stop.
-    while not all(sati) or i < 100:
+    while not all(sati) or i < 1000 // multip.cpu_count():
         print(f"iteration: {i}")
 
         # use multiprocessing to get coverage scores, pref_ids and disconnect counts.
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         env_id = sys.argv[1]
     else:
-        env_id = 'uav-v2'
+        env_id = 'uav-v8'
 
     models_dir = "rl-baselines3-zoo/logs"
 
