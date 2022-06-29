@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH --account=sq72
+#SBATCH --time=04:00:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=2048
+#SBATCH --cpus-per-task=12
+
+env_id=$1
+output_path=./slurm_stdout/tests/${env_id}_%j.log
+
+sbatch --job-name=test_${env_id} --output=$output_path --export All,env_id=$env_id test.sh
+

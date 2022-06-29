@@ -280,9 +280,9 @@ if __name__ == '__main__':
     model = PPO.load(f"{models_dir}/ppo/{env_id}_1/best_model")
     env_v = 'v5'
 
-    env = gym.make(env_id, demonstration=False)
+#    env = gym.make(env_id, demonstration=False)
     # env.seed(0)
-    env.reset()
+#    env.reset()
 
     exp_num = env_id
 
