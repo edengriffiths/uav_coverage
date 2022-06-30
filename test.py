@@ -285,6 +285,10 @@ if __name__ == '__main__':
 
     model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
 
+    # env = gym.make(env_id, demonstration=False)
+    # # env.seed(0)
+    # env.reset()
+
     directory = f"experiments/experiment #{model_id}"
 
     if os.path.isdir(directory):
