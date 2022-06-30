@@ -277,7 +277,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         env_id = sys.argv[1]
     else:
-        env_id = 'uav-v8'
+        # env_id = 'uav-v8'
+        raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
     models_dir = "rl-baselines3-zoo/logs"
 
