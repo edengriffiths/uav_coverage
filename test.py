@@ -196,10 +196,10 @@ def get_data(env_id, model):
     return df_metrics, df_summarised_all, df_summarised_nout
 
 
-def write_data(env_id, exp_num, model):
+def write_data(env_id, model_id, model):
     df_metrics, df_all, df_nout = get_data(env_id, model)
 
-    directory = f"experiments/experiment #{exp_num}"
+    directory = f"experiments/experiment #{model_id}"
 
     with open(f"{directory}/data_raw.csv", 'w') as f:
         f.write(
@@ -277,31 +277,26 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         env_id = sys.argv[1]
     else:
-        env_id = 'uav-v8'
+        # env_id = 'uav-v8'
+        raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
     models_dir = "rl-baselines3-zoo/logs"
+    model_id = f"{env_id}_1"
 
-    model = PPO.load(f"{models_dir}/ppo/{env_id}_1/best_model")
-    env_v = 'v5'
+    model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
 
-#    env = gym.make(env_id, demonstration=False)
-    # env.seed(0)
-#    env.reset()
-
-    exp_num = env_id
-
-    directory = f"experiments/experiment #{exp_num}"
+    directory = f"experiments/experiment #{model_id}"
 
     if os.path.isdir(directory):
         if len(os.listdir(directory)) != 0:
-            inp = input(f'Are you sure you want to overwrite experiment {exp_num}? y/n ')
+            inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
             if inp == 'n':
-                exp_num += 1
-                directory = f"experiments/experiment #{exp_num}"
+                model_id += "_t"
+                directory = f"experiments/experiment #{model_id}"
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
 
-    write_data(env_id, exp_num, model)
+    write_data(env_id, model_id, model)
     # make_mp4(exp_num, env, model)
     # show_mp4(env, model)
