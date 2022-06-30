@@ -193,13 +193,17 @@ def get_data(env_id, model):
 
         i += 1
 
-    return df_summarised_all, df_summarised_nout
+    return df_metrics, df_summarised_all, df_summarised_nout
 
 
 def write_data(env_id, exp_num, model):
-    df_all, df_nout = get_data(env_id, model)
+    df_metrics, df_all, df_nout = get_data(env_id, model)
 
     directory = f"experiments/experiment #{exp_num}"
+
+    with open(f"{directory}/data_raw.csv", 'w') as f:
+        f.write(
+            df_all.to_csv())
 
     with open(f"{directory}/data_all.csv", 'w') as f:
         f.write(
