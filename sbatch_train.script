@@ -1,12 +1,15 @@
 #!/bin/bash
 #SBATCH --account=sq72
-#SBATCH --time=24:00:00
+#SBATCH --time=05:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8192
 #SBATCH --cpus-per-task=2
 
 env_id=$1
-output_path=./slurm_stdout/train/${env_id}_%j.log
+alpha=$2
+beta=$3
+gamma=$4
+output_path=./slurm_stdout/train/${env_id}_${alpha}${beta}${gamma}_%j.log
 
-sbatch --job-name=$env_id --output=$output_path --export All,env_id=$env_id train.sh
+sbatch --job-name=${env_id}_$alpha$beta$gamma --output=$output_path --export All,env_id=$env_id,alpha=$alpha,beta=$beta,gamma=$gamma train.sh
 

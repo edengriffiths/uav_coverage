@@ -175,19 +175,19 @@ def get_data(env_id, model):
             df_summarised_all = df_metrics.describe(include='all')
             df_summarised_nout = df_filtered.describe(include='all')
 
-            print(df_summarised_nout)
+            print(df_summarised_all)
         else:
-            prev_means = df_summarised_nout.loc['mean'].copy()
+            prev_means = df_summarised_all.loc['mean'].copy()
 
             df_summarised_all = df_metrics.describe(include='all')
 
             df_summarised_nout = df_filtered.describe(include='all')
 
-            change = df_summarised_nout.loc['mean'] - prev_means
+            change = df_summarised_all.loc['mean'] - prev_means
 
             sati = sati[1:] + [not any(abs(change) > eps)]
 
-            print(df_summarised_nout)
+            print(df_summarised_all)
             print(f"Change in means_nout: {change.tolist()}")
             print(f"Prev stopping conditions: {sati}")
 
@@ -196,14 +196,12 @@ def get_data(env_id, model):
     return df_metrics, df_summarised_all, df_summarised_nout
 
 
-def write_data(env_id, model_id, model):
+def write_data(env_id, model_id, model, directory):
     df_metrics, df_all, df_nout = get_data(env_id, model)
-
-    directory = f"experiments/experiment #{model_id}"
 
     with open(f"{directory}/data_raw.csv", 'w') as f:
         f.write(
-            df_all.to_csv())
+            df_metrics.to_csv())
 
     with open(f"{directory}/data_all.csv", 'w') as f:
         f.write(
@@ -274,13 +272,18 @@ def show_mp4(env, model):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 5:
         env_id = sys.argv[1]
+        alpha = sys.argv[2]
+        beta = sys.argv[3]
+        gamma = sys.argv[4]
+
     else:
         # env_id = 'uav-v8'
         raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
-    models_dir = "rl-baselines3-zoo/logs"
+    weights = f"{alpha}_{beta}_{gamma}"
+    models_dir = f"rl-baselines3-zoo/logs/{weights}"
     model_id = f"{env_id}_1"
 
     model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
@@ -289,7 +292,7 @@ if __name__ == '__main__':
     # # env.seed(0)
     # env.reset()
 
-    directory = f"experiments/experiment #{model_id}"
+    directory = f"experiments/{weights}/experiment #{model_id}"
 
     if os.path.isdir(directory):
         if len(os.listdir(directory)) != 0:
@@ -301,6 +304,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    write_data(env_id, model_id, model)
+    write_data(env_id, model_id, model, directory)
     # make_mp4(exp_num, env, model)
     # show_mp4(env, model)

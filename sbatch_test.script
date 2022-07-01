@@ -6,7 +6,10 @@
 #SBATCH --cpus-per-task=12
 
 env_id=$1
-output_path=./slurm_stdout/tests/${env_id}_%j.log
+alpha=$2
+beta=$3
+gamma=$4
+output_path=./slurm_stdout/tests/${env_id}_${alpha}${beta}${gamma}_%j.log
 
-sbatch --job-name=test_${env_id} --output=$output_path --export All,env_id=$env_id test.sh
+sbatch --job-name=test_${env_id}_$alpha$beta$gamma --output=$output_path --export All,env_id=$env_id,alpha=$alpha,beta=$beta,gamma=$gamma test.sh
 
