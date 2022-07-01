@@ -74,7 +74,7 @@ def mean_pref_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     """
     filt_c_scores = c_scores[pref_ids.astype(bool)]
     if len(filt_c_scores) == 0:
-        return 0
+        return 0.75
     else:
         return filt_c_scores.mean()
 
@@ -87,7 +87,7 @@ def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     """
     filt_c_scores = c_scores[~pref_ids.astype(bool)]
     if len(filt_c_scores) == 0:
-        return 0
+        return 0.75
     else:
         return filt_c_scores.mean()
 
@@ -191,7 +191,7 @@ def get_data(env_id, alpha, beta, gamma, model):
             sati = sati[1:] + [not any(abs(change) > eps)]
 
             print(df_summarised_all)
-            print(f"Change in means_nout: {change.tolist()}")
+            print(f"Change in means: {change.tolist()}")
             print(f"Prev stopping conditions: {sati}")
 
         i += 1
