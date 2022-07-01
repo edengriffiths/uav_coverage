@@ -15,11 +15,7 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, alpha=1, beta=1, gamma=1, n_uavs: int = None, demonstration: bool = False):
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-
+    def __init__(self, n_uavs: int = None, demonstration: bool = False):
         self.sg = Settings()
 
         self.seed()
@@ -126,7 +122,7 @@ class UAVCoverage(gym.Env):
 
         # ---
         # NOTE: reward calc needs to come after self.cov_scores update because of fairness calculation.
-        reward = self.reward_2(maybe_locs)
+        reward = self.reward_2(prev_cov_scores, maybe_locs)
 
         info = {}
 
@@ -258,7 +254,7 @@ class UAVCoverage(gym.Env):
             'cov_scores': (obs['cov_scores'] + 1) / 2
         }
 
-    def reward_1(self):
+    def reward_1(self, prev_cov_score):
         """
         Includes user scores, fairness, and user prioritisation
         """
@@ -291,14 +287,15 @@ class UAVCoverage(gym.Env):
 
         return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
 
-    def reward_2(self, maybe_uav_locs):
+    def reward_2(self, prev_cov_score, maybe_uav_locs):
         """
         Include constant penalty for disconnecting or going out of bounds
+        :param prev_cov_score: the coverage score from the previous timestep.
         :param maybe_uav_locs: positions the UAVs tried to move to.
         """
         uav_locs = self.denormalize_obs(self.state)['uav_locs']
 
-        reward = self.reward_1()
+        reward = self.reward_1(prev_cov_score)
         graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), self.home_loc, self.comm_range)
         dconnect_count = gym_utils.get_disconnected_count(graph)
 
@@ -314,7 +311,7 @@ class UAVCoverage(gym.Env):
 
         self.disconnect_count += dconnect_count
 
-        return reward - 50 * (self.alpha + self.beta + self.gamma) * (p_dconnect - p_outside)
+        return reward - 10 * p_dconnect - p_outside
 
 
 if __name__ == '__main__':
