@@ -277,9 +277,9 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 5:
         env_id = sys.argv[1]
-        alpha = sys.argv[2]
-        beta = sys.argv[3]
-        gamma = sys.argv[4]
+        alpha = int(sys.argv[2])
+        beta = int(sys.argv[3])
+        gamma = int(sys.argv[4])
 
     else:
         # env_id = 'uav-v8'
