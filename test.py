@@ -20,8 +20,11 @@ import multiprocessing as multip
 
 class Environments:
 
-    def __init__(self, env_id, environments_n, model):
+    def __init__(self, env_id, alpha, beta, gamma, environments_n, model):
         self.env_id = env_id
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
         self.environments_n = environments_n
         self.cores_count = multip.cpu_count()
         self.envs = []
@@ -39,7 +42,7 @@ class Environments:
     def reset_all_environments(self):
         for env in self.envs:
             env.close()
-        self.envs = [gym.make(self.env_id) for _ in range(self.environments_n)]
+        self.envs = [gym.make(self.env_id, alpha=self.alpha, beta=self.beta, gamma=self.gamma) for _ in range(self.environments_n)]
 
     @staticmethod
     def get_data_single(env):
@@ -134,7 +137,7 @@ def exclude_outliers(df_metrics: pd.DataFrame) -> pd.DataFrame:
     return df_filtered
 
 
-def get_data(env_id, model):
+def get_data(env_id, alpha, beta, gamma, model):
     metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)', 'dconnects']
 
     df_metrics = pd.DataFrame(columns=metric_names)
@@ -155,7 +158,7 @@ def get_data(env_id, model):
         print(f"iteration: {i}")
 
         # use multiprocessing to get coverage scores, pref_ids and disconnect counts.
-        with Environments(env_id, multip.cpu_count(), model) as envs:
+        with Environments(env_id, alpha, beta, gamma, multip.cpu_count(), model) as envs:
             results = envs.get_data_all()
             l_c, l_p, l_dc = list(zip(*results))
 
@@ -196,8 +199,8 @@ def get_data(env_id, model):
     return df_metrics, df_summarised_all, df_summarised_nout
 
 
-def write_data(env_id, model_id, model, directory):
-    df_metrics, df_all, df_nout = get_data(env_id, model)
+def write_data(env_id, alpha, beta, gamma, model, directory):
+    df_metrics, df_all, df_nout = get_data(env_id, alpha, beta, gamma, model)
 
     with open(f"{directory}/data_raw.csv", 'w') as f:
         f.write(
@@ -304,6 +307,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    write_data(env_id, model_id, model, directory)
+    write_data(env_id, alpha, beta, gamma, model, directory)
     # make_mp4(exp_num, env, model)
     # show_mp4(env, model)
