@@ -314,7 +314,7 @@ class UAVCoverage(gym.Env):
 
         self.disconnect_count += dconnect_count
 
-        return reward - 50 * (self.alpha + self.beta + self.gamma) * (p_dconnect - p_outside)
+        return reward - 50 * (self.alpha + self.beta + self.gamma) * (p_dconnect + p_outside)
 
 
 if __name__ == '__main__':
