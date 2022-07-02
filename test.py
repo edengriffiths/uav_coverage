@@ -189,7 +189,7 @@ def get_data(env_id, alpha, beta, gamma, delta, model):
 
             change = df_summarised_all.loc['mean'] - prev_means
 
-            sati = sati[1:] + [not any(abs(change) > eps)]
+            sati = sati[1:] + [not any(abs(change) / prev_means > eps)]
 
             print(df_summarised_all)
             print(f"Change in means: {change.tolist()}")
