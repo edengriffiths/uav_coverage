@@ -9,7 +9,8 @@ env_id=$1
 alpha=$2
 beta=$3
 gamma=$4
-output_path=./slurm_stdout/tests/${env_id}_${alpha}${beta}${gamma}_%j.log
+delta=$5
 
-sbatch --job-name=test_${env_id}_$alpha$beta$gamma --output=$output_path --export All,env_id=$env_id,alpha=$alpha,beta=$beta,gamma=$gamma test.sh
+output_path=./slurm_stdout/tests/${env_id}_${alpha}${beta}${gamma}${delta}_%j.log
 
+sbatch --job-name=test_${env_id}_$alpha$beta$gamma$delta --output=$output_path --export All,env_id=$env_id,alpha=$alpha,beta=$beta,gamma=$gamma,delta=$delta test.sh

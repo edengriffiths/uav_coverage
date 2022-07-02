@@ -20,11 +20,12 @@ import multiprocessing as multip
 
 class Environments:
 
-    def __init__(self, env_id, alpha, beta, gamma, environments_n, model):
+    def __init__(self, env_id, alpha, beta, gamma, delta, environments_n, model):
         self.env_id = env_id
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
+        self.delta = delta
         self.environments_n = environments_n
         self.cores_count = multip.cpu_count()
         self.envs = []
@@ -42,7 +43,7 @@ class Environments:
     def reset_all_environments(self):
         for env in self.envs:
             env.close()
-        self.envs = [gym.make(self.env_id, alpha=self.alpha, beta=self.beta, gamma=self.gamma) for _ in range(self.environments_n)]
+        self.envs = [gym.make(self.env_id, alpha=self.alpha, beta=self.beta, gamma=self.gamma, delta=self.delta) for _ in range(self.environments_n)]
 
     @staticmethod
     def get_data_single(env):
@@ -137,7 +138,7 @@ def exclude_outliers(df_metrics: pd.DataFrame) -> pd.DataFrame:
     return df_filtered
 
 
-def get_data(env_id, alpha, beta, gamma, model):
+def get_data(env_id, alpha, beta, gamma, delta, model):
     metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)', 'dconnects']
 
     df_metrics = pd.DataFrame(columns=metric_names)
@@ -158,7 +159,7 @@ def get_data(env_id, alpha, beta, gamma, model):
         print(f"iteration: {i}")
 
         # use multiprocessing to get coverage scores, pref_ids and disconnect counts.
-        with Environments(env_id, alpha, beta, gamma, multip.cpu_count(), model) as envs:
+        with Environments(env_id, alpha, beta, gamma, delta, multip.cpu_count(), model) as envs:
             results = envs.get_data_all()
             l_c, l_p, l_dc = list(zip(*results))
 
@@ -199,8 +200,8 @@ def get_data(env_id, alpha, beta, gamma, model):
     return df_metrics, df_summarised_all, df_summarised_nout
 
 
-def write_data(env_id, alpha, beta, gamma, model, directory):
-    df_metrics, df_all, df_nout = get_data(env_id, alpha, beta, gamma, model)
+def write_data(env_id, alpha, beta, gamma, delta, model, directory):
+    df_metrics, df_all, df_nout = get_data(env_id, alpha, beta, gamma, delta, model)
 
     with open(f"{directory}/data_raw.csv", 'w') as f:
         f.write(
@@ -275,17 +276,18 @@ def show_mp4(env, model):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 6:
         env_id = sys.argv[1]
         alpha = int(sys.argv[2])
         beta = int(sys.argv[3])
         gamma = int(sys.argv[4])
+        delta = int(sys.argv[5])
 
     else:
         # env_id = 'uav-v8'
         raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
-    weights = f"{alpha}_{beta}_{gamma}"
+    weights = f"{alpha}_{beta}_{gamma}_{delta}"
     models_dir = f"rl-baselines3-zoo/logs/{weights}"
     model_id = f"{env_id}_1"
 
@@ -307,6 +309,6 @@ if __name__ == '__main__':
     else:
         os.makedirs(directory)
 
-    write_data(env_id, alpha, beta, gamma, model, directory)
+    write_data(env_id, alpha, beta, gamma, delta, model, directory)
     # make_mp4(exp_num, env, model)
-    # show_mp4(env, model)
+    # show_mp4(gym.make(env_id, alpha=alpha, beta=beta, gamma=gamma, delta=delta), model)

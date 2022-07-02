@@ -15,10 +15,11 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, alpha=1, beta=1, gamma=1, n_uavs: int = None, demonstration: bool = False):
+    def __init__(self, alpha=1, beta=1, gamma=1, delta=1, n_uavs: int = None, demonstration: bool = False):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
+        self.delta = delta
 
         self.sg = Settings()
 
@@ -314,7 +315,7 @@ class UAVCoverage(gym.Env):
 
         self.disconnect_count += dconnect_count
 
-        return reward - 50 * (self.alpha + self.beta + self.gamma) * (p_dconnect + p_outside)
+        return reward - self.delta * (self.alpha + self.beta + self.gamma) * (p_dconnect + p_outside)
 
 
 if __name__ == '__main__':
