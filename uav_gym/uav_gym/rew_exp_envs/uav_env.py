@@ -15,8 +15,12 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, n_uavs: int = None, cov_range: int = None, pref_prop: float = None, pref_factor: int = None,
-                 demonstration: bool = False):
+    def __init__(self, alpha=1, beta=1, gamma=1, delta=1, n_uavs: int = None, demonstration: bool = False):
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.delta = delta
+
         self.sg = Settings()
 
         self.seed()
@@ -33,12 +37,7 @@ class UAVCoverage(gym.Env):
             self.n_uavs = n_uavs
         else:
             self.n_uavs = self.sg.V['NUM_UAV']
-
-        if cov_range is not None:
-            self.cov_range = cov_range
-        else:
-            self.cov_range = self.sg.V['COV_RANGE']
-
+        self.cov_range = self.sg.V['COV_RANGE']
         self.comm_range = self.sg.V['COMM_RANGE']
 
         self.dist = self.sg.V['DIST']
@@ -50,15 +49,7 @@ class UAVCoverage(gym.Env):
         self.b_factor = self.sg.V['BOUNDARY_FACTOR']
         self.n_clusters = None
 
-        if pref_prop is not None:
-            self.pref_prop = pref_prop
-        else:
-            self.pref_prop = self.sg.V['PREF_PROP']
-
-        if pref_factor is not None:
-            self.pref_factor = pref_factor
-        else:
-            self.pref_factor = self.sg.V['PREF_FACTOR']
+        self.pref_factor = 2
 
         # ----
         # SPACES
@@ -66,13 +57,6 @@ class UAVCoverage(gym.Env):
 
         # locs are the locations of each UAV or user in the form [x1, y1, x2, y2]
         self.observation_space = self._observation_space_0()
-
-        # ----
-        # REWARD WEIGHTS
-        self.alpha = self.sg.V['ALPHA']
-        self.beta = self.sg.V['BETA']
-        self.gamma = self.sg.V['GAMMA']
-        self.delta = self.sg.V['DELTA']
 
         self.disconnect_count = 0.0
         self.state = None
@@ -92,8 +76,7 @@ class UAVCoverage(gym.Env):
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float64),
                 'user_locs': user_locs,
-                'pref_users': self.np_random.choice([0, 1], size=(self.n_users,),
-                                                    p=[1 - self.pref_prop, self.pref_prop]).astype(np.int32),
+                'pref_users': self.np_random.choice([0, 1], size=(self.n_users,), p=[4. / 5, 1. / 5]).astype(np.int32),
                 'cov_scores': np.array([0] * self.n_users, dtype=np.float64)
             }
         )
@@ -293,7 +276,8 @@ class UAVCoverage(gym.Env):
         if f_idx == 1:
             f_idx = 0
 
-        cov_state = gym_utils.get_coverage_state(uav_locs.tolist(), user_locs.tolist(), self.cov_range)
+        # calculate improvement in total coverage
+        delta_cov_score = cov_scores - prev_cov_score
 
         # calculate distance from each user to the closest UAV.
         dist = gym_utils.dist_to_users(uav_locs.tolist(), user_locs.tolist())
@@ -302,11 +286,11 @@ class UAVCoverage(gym.Env):
         def scale_scores(scores):
             return scores + (self.pref_factor - 1) * pref_users * scores
 
-        # both parts have a max values of n_users + scale factor * prioritised users and a min value of 0.
-        cov_part = sum(scale_scores(cov_state)) / self.n_users
+        # both parts have a max values of n_users and a min value of 0.
+        cov_part = f_idx * sum(scale_scores(delta_cov_score)) / self.n_users
         dist_part = sum(scale_scores(dist_scores)) / self.n_users
 
-        return self.alpha * f_idx + self.beta * cov_part + self.gamma * dist_part
+        return cov_part + self.sg.V['P_OUTSIDE_COV'] * dist_part
 
     def reward_2(self, maybe_uav_locs):
         """
@@ -335,7 +319,7 @@ class UAVCoverage(gym.Env):
 
 
 if __name__ == '__main__':
-    env = UAVCoverage()
+    env = UAVCoverage(demonstration=True)
 
     from stable_baselines3 import PPO
     from stable_baselines3.common.env_checker import check_env
@@ -355,3 +339,14 @@ if __name__ == '__main__':
             obs = env.reset()
         env.render()
 
+    # model = PPO('MultiInputPolicy', env, verbose=1)
+    # model.learn(total_timesteps=10**5)
+    #
+    # obs = env.reset()
+    # env.seed(0)
+    # locs = []
+    # for _ in range(200):
+    #     action, _states = model.predict(obs)
+    #     obs, rewards, done, info = env.step(action)
+    #     print(rewards)
+    #     env.render()

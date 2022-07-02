@@ -12,7 +12,7 @@ def_multi=4
 us=( 3 4 5 6 7 8 )
 
 for u in "${us[@]}"; do
-    bash $file uav-v0 $u $def_cov $def_npref $def_multi
+    bash $file uav-v0 $u $def_cov $def_npref $def_multi n_uavs
   done
 
 
@@ -20,7 +20,7 @@ for u in "${us[@]}"; do
 cs=( 175 200 225 250 275 300 )
 
 for c in "${cs[@]}"; do
-    bash $file uav-v0 $def_u $c $def_npref $def_multi
+    bash $file uav-v0 $def_u $c $def_npref $def_multi cov_range
   done
 
 
@@ -29,7 +29,7 @@ for c in "${cs[@]}"; do
 nps=( 0 5 10 15 20 25 )
 
 for np in "${nps[@]}"; do
-    bash $file uav-v0 $def_u $def_cov $np $def_multi
+    bash $file uav-v0 $def_u $def_cov $np $def_multi pref_prop
   done
 
 
@@ -37,5 +37,5 @@ for np in "${nps[@]}"; do
 ms=( 1 2 4 8 16 32 )
 
 for m in "${ms[@]}"; do
-    bash $file uav-v0 $def_u $def_cov $def_npref $m
+    bash $file uav-v0 $def_u $def_cov $def_npref $m pref_fac
   done

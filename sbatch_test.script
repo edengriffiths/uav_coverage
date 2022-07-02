@@ -6,11 +6,12 @@
 #SBATCH --cpus-per-task=12
 
 env_id=$1
-alpha=$2
-beta=$3
-gamma=$4
-delta=$5
+n_uavs=$2
+cov_r=$3
+prop=$4
+pref_fac=$5
+exp_name=$6
 
-output_path=./slurm_stdout/tests/${env_id}_${alpha}${beta}${gamma}${delta}_%j.log
+output_path=./slurm_stdout/tests/${exp_name}/${n_uavs}${cov_r}${prop}${pref_fac}_%j.log
 
-sbatch --job-name=test_${env_id}_$alpha$beta$gamma$delta --output=$output_path --export All,env_id=$env_id,alpha=$alpha,beta=$beta,gamma=$gamma,delta=$delta test.sh
+sbatch --job-name=test_${exp_name}_$n_uavs$cov_r$prop$pref_fac --output=$output_path --export All,env_id=$env_id,n_uavs=$n_uavs,cov_r=$cov_r,prop="$prop",pref_fac=$pref_fac,exp_name=$exp_name test.sh

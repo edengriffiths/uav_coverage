@@ -20,12 +20,12 @@ import multiprocessing as multip
 
 class Environments:
 
-    def __init__(self, env_id, alpha, beta, gamma, delta, environments_n, model):
+    def __init__(self, env_id, n_uavs, cov_range, pref_prop, pref_factor, environments_n, model):
         self.env_id = env_id
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.delta = delta
+        self.n_uavs = n_uavs
+        self.cov_range = cov_range
+        self.pref_prop = pref_prop
+        self.pref_factor = pref_factor
         self.environments_n = environments_n
         self.cores_count = multip.cpu_count()
         self.envs = []
@@ -43,7 +43,7 @@ class Environments:
     def reset_all_environments(self):
         for env in self.envs:
             env.close()
-        self.envs = [gym.make(self.env_id, alpha=self.alpha, beta=self.beta, gamma=self.gamma, delta=self.delta) for _ in range(self.environments_n)]
+        self.envs = [gym.make(self.env_id, n_uavs=self.n_uavs, cov_range=self.cov_range, pref_prop=self.pref_prop, pref_factor=self.pref_factor) for _ in range(self.environments_n)]
 
     @staticmethod
     def get_data_single(env):
@@ -138,7 +138,7 @@ def exclude_outliers(df_metrics: pd.DataFrame) -> pd.DataFrame:
     return df_filtered
 
 
-def get_data(env_id, alpha, beta, gamma, delta, model):
+def get_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model):
     metric_names = ['cov (all)', 'f idx', 'cov (pref)', 'cov (reg)', 'dconnects']
 
     df_metrics = pd.DataFrame(columns=metric_names)
@@ -159,7 +159,7 @@ def get_data(env_id, alpha, beta, gamma, delta, model):
         print(f"iteration: {i}")
 
         # use multiprocessing to get coverage scores, pref_ids and disconnect counts.
-        with Environments(env_id, alpha, beta, gamma, delta, multip.cpu_count(), model) as envs:
+        with Environments(env_id, n_uavs, cov_range, pref_prop, pref_fac, multip.cpu_count(), model) as envs:
             results = envs.get_data_all()
             l_c, l_p, l_dc = list(zip(*results))
 
@@ -200,8 +200,8 @@ def get_data(env_id, alpha, beta, gamma, delta, model):
     return df_metrics, df_summarised_all, df_summarised_nout
 
 
-def write_data(env_id, alpha, beta, gamma, delta, model, directory):
-    df_metrics, df_all, df_nout = get_data(env_id, alpha, beta, gamma, delta, model)
+def write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory):
+    df_metrics, df_all, df_nout = get_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model)
 
     with open(f"{directory}/data_raw.csv", 'w') as f:
         f.write(
@@ -276,19 +276,20 @@ def show_mp4(env, model):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 6:
+    if len(sys.argv) == 7:
         env_id = sys.argv[1]
-        alpha = int(sys.argv[2])
-        beta = int(sys.argv[3])
-        gamma = int(sys.argv[4])
-        delta = int(sys.argv[5])
+        n_uavs = int(sys.argv[2])
+        cov_range = int(sys.argv[3])
+        pref_prop = int(sys.argv[4])
+        pref_fac = int(sys.argv[5])
+        exp_name = int(sys.argv[6])
 
     else:
         # env_id = 'uav-v8'
         raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
-    weights = f"{alpha}_{beta}_{gamma}_{delta}"
-    models_dir = f"rl-baselines3-zoo/logs/{weights}"
+    exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
+    models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
     model_id = f"{env_id}_1"
 
     model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
@@ -297,18 +298,18 @@ if __name__ == '__main__':
     # # env.seed(0)
     # env.reset()
 
-    directory = f"experiments/{weights}/experiment #{model_id}"
+    directory = f"experiments/{exp_name}/experiment #{exp_vals}"
 
     if os.path.isdir(directory):
         if len(os.listdir(directory)) != 0:
             inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
             if inp == 'n':
-                model_id += "_t"
-                directory = f"experiments/experiment #{model_id}"
+                exp_vals += "_t"
+                directory = f"experiments/{exp_name}/experiment #{exp_vals}"
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
 
-    write_data(env_id, alpha, beta, gamma, delta, model, directory)
+    write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory)
     # make_mp4(exp_num, env, model)
     # show_mp4(gym.make(env_id, alpha=alpha, beta=beta, gamma=gamma, delta=delta), model)
