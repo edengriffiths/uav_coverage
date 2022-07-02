@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, n_uavs: int = None, cov_range: int = None, pref_prop: float = None, pref_factor: int = None,
+    def __init__(self, n_uavs: int = None, cov_range: int = None, pref_prop: int = None, pref_factor: int = None,
                  demonstration: bool = False):
         self.sg = Settings()
 
@@ -51,9 +51,9 @@ class UAVCoverage(gym.Env):
         self.n_clusters = None
 
         if pref_prop is not None:
-            self.pref_prop = pref_prop
+            self.pref_prop = pref_prop / 100
         else:
-            self.pref_prop = self.sg.V['PREF_PROP']
+            self.pref_prop = self.sg.V['PREF_PROP'] / 100
 
         if pref_factor is not None:
             self.pref_factor = pref_factor

@@ -16,7 +16,7 @@ class Settings(object):
             # USER SETTINGS
             'NUM_USERS': 50,
             'BOUNDARY_FACTOR': 2,
-            'PREF_PROP': 0.2,
+            'PREF_PROP': 20,
             'PREF_FACTOR': 2,
 
             # ----
