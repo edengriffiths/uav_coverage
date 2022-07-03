@@ -53,7 +53,8 @@ class Environments:
         while not done:
             # model comes from global scope so that pickling still works
             # action, _states = model.predict(obs, deterministic=True)
-            action = get_fake_greedy_action(env)
+            # action = get_fake_greedy_action(env)
+            action = env.action_space.sample()
             obs, rewards, done, info = env.step(action)
 
         state = env.denormalize_obs(obs)
