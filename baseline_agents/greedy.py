@@ -6,6 +6,14 @@ import math
 from copy import deepcopy
 
 
+class Greedy:
+    def __init__(self, env):
+        self.action_space = env.action_space
+        self.n_uavs = len(env.action_space.nvec)
+        self.n_actions = env.action_space.nvec[0]
+
+
+
 def get_real_greedy_action(env):
     n_uavs = len(env.action_space.nvec)
     n_actions = env.action_space.nvec[0]
@@ -18,8 +26,6 @@ def get_real_greedy_action(env):
         new_env = deepcopy(env)
         obs, reward, done, info = new_env.step(action)
         if reward > best_reward:
-            print(action)
-            print(reward)
             best_action = action
             best_reward = reward
 
@@ -54,23 +60,47 @@ def get_fake_greedy_action(env):
     graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), env.home_loc, env.comm_range)
     dconnect_count = gym_utils.get_disconnected_count(graph)
 
-    if not all(gym_utils.inbounds(uav_locs, env.sim_size, env.sim_size)) or dconnect_count > 0:
-        return [0] * n_uavs
+    # TODO: This might not be necessary, just makes greedy worse. Reward should handle this.
+    # if not all(gym_utils.inbounds(uav_locs, env.sim_size, env.sim_size)) or dconnect_count > 0:
+    #     return [0] * n_uavs
 
     return best_action
 
 
-env = gym.make('uav-v0', n_uavs=4)
-env.seed(0)
-obs = env.reset()
-done = False
+if __name__=='__main__':
+    env = gym.make('uav-v0')
+    env.seed(0)
+    obs = env.reset()
+    done = False
 
-while not done:
-    action = get_fake_greedy_action(env)
-    obs, reward, done, info = env.step(action)
-    print(action)
-    print(reward)
-    env.render()
+    import time
+    from stable_baselines3 import PPO
+
+    s = time.time()
+    i = 0
+    while not done:
+        action = get_real_greedy_action(env)
+        obs, reward, done, info = env.step(action)
+        print(i + 1)
+        i += 1
+    print(time.time() - s)
+
+    # obs = env.reset()
+    # done = False
+    # model = PPO.load("/Users/Eden/University/Honours/Practice/rl_uav_coverage/rl-baselines3-zoo/logs/n_uavs/4_200_15_4/ppo/uav-v0_1/best_model")
+    #
+    # s = time.time()
+    # while not done:
+    #     action, _ = model.predict(obs)
+    #     obs, reward, done, info = env.step(action)
+    # print(time.time() - s)
+    #
+    # while not done:
+    #     action = get_fake_greedy_action(env)
+    #     obs, reward, done, info = env.step(action)
+    #     print(action)
+    #     print(reward)
+    #     env.render()
 
 # actions = [
 #     [0, 0, 0, 0],
