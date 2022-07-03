@@ -4,6 +4,7 @@ from typing import Tuple
 import uav_gym
 import animate
 import uav_gym.utils as gym_utils
+from baseline_agents.greedy import get_fake_greedy_action
 
 from stable_baselines3 import PPO
 import numpy as np
@@ -51,7 +52,8 @@ class Environments:
         done = False
         while not done:
             # model comes from global scope so that pickling still works
-            action, _states = model.predict(obs, deterministic=True)
+            # action, _states = model.predict(obs, deterministic=True)
+            action = get_fake_greedy_action(env)
             obs, rewards, done, info = env.step(action)
 
         state = env.denormalize_obs(obs)
@@ -276,22 +278,24 @@ if __name__ == '__main__':
         cov_range = int(sys.argv[3])
         pref_prop = int(sys.argv[4])
         pref_fac = int(sys.argv[5])
-        exp_name = int(sys.argv[6])
+        exp_name = sys.argv[6]
 
     else:
         # env_id = 'uav-v8'
         raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
     exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
-    models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
-    model_id = f"{env_id}_1"
+    # models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
+    # model_id = f"{env_id}_1"
 
-    model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
+    # model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
 
     # env = gym.make(env_id, demonstration=False)
     # # env.seed(0)
     # env.reset()
 
+    model_id = ''
+    model = None
     directory = f"experiments/{exp_name}/experiment #{exp_vals}"
 
     if os.path.isdir(directory):
