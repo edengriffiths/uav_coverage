@@ -74,10 +74,7 @@ def mean_pref_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     :return: the mean score of prioritised users.
     """
     filt_c_scores = c_scores[pref_ids.astype(bool)]
-    if len(filt_c_scores) == 0:
-        return 0.75
-    else:
-        return filt_c_scores.mean()
+    return filt_c_scores.mean()
 
 
 def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
@@ -87,10 +84,7 @@ def mean_reg_score(c_scores: np.ndarray, pref_ids: np.ndarray) -> float:
     :return: the mean score of regular users.
     """
     filt_c_scores = c_scores[~pref_ids.astype(bool)]
-    if len(filt_c_scores) == 0:
-        return 0.75
-    else:
-        return filt_c_scores.mean()
+    return filt_c_scores.mean()
 
 
 def get_ep_vals(c_scores, pref_ids, dconnects):
