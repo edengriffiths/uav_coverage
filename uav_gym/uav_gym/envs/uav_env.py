@@ -15,13 +15,11 @@ import matplotlib.pyplot as plt
 
 
 class UAVCoverage(gym.Env):
-    def __init__(self, n_uavs: int = None, cov_range: int = None, pref_prop: int = None, pref_factor: int = None,
-                 demonstration: bool = False):
+    def __init__(self, n_uavs: int = None, cov_range: int = None, pref_prop: int = None, pref_factor: int = None):
         self.sg = Settings()
 
         self.seed()
 
-        self.dem = demonstration
         # ----
         # SIMULATION
         self.sim_size = self.sg.V['SIM_SIZE']
@@ -83,15 +81,10 @@ class UAVCoverage(gym.Env):
         return [seed]
 
     def reset(self):
-        if self.dem:
-            user_locs = np.array(self.sg.V['USER_LOCS'])
-        else:
-            user_locs = np.array(self._gen_user_locs(), dtype=np.float64)
-
         self.state = self.normalize_obs(
             {
                 'uav_locs': np.array([self.sg.V['INIT_POSITION'] for _ in range(self.n_uavs)], dtype=np.float64),
-                'user_locs': user_locs,
+                'user_locs': np.array(self._gen_user_locs(), dtype=np.float64),
                 'pref_users': self.np_random.choice([0, 1], size=(self.n_users,),
                                                     p=[1 - self.pref_prop, self.pref_prop]).astype(np.int32),
                 'cov_scores': np.array([0] * self.n_users, dtype=np.float64)
