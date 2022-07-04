@@ -130,7 +130,7 @@ class UAVCoverage(gym.Env):
             dtype=np.float64)
 
         cov_state = gym_utils.get_coverage_state(new_locs.tolist(), user_locs.tolist(), self.cov_range)
-        prev_cov_scores = state['cov_scores'].copy()
+
         new_cov_scores = state['cov_scores'] * (self.timestep - 1) / self.timestep + cov_state / self.timestep
         # update state
         self.state = self.normalize_obs(
@@ -156,9 +156,12 @@ class UAVCoverage(gym.Env):
         # unpack state
         uav_locs_ = state['uav_locs']
         user_locs_ = state['user_locs']
+        pref_users = state['pref_users']
 
         uav_locs = list(zip(*uav_locs_))
-        user_locs = list(zip(*user_locs_))
+
+        reg_user_locs = np.array(list(zip(*user_locs_[~pref_users.astype(bool)])))
+        pref_user_locs = np.array(list(zip(*user_locs_[pref_users.astype(bool)])))
 
         # set up figures and axes
         # ---
@@ -185,7 +188,8 @@ class UAVCoverage(gym.Env):
 
         plt.scatter(uav_locs[0], uav_locs[1], color='red')
 
-        plt.scatter(user_locs[0], user_locs[1], color='grey', s=2)
+        plt.scatter(reg_user_locs[0], reg_user_locs[1], color='grey', s=10)
+        plt.scatter(pref_user_locs[0], pref_user_locs[1], color='red', s=10)
         plt.xlabel("X coordinate")
         plt.ylabel("Y coordinate")
         plt.show()
