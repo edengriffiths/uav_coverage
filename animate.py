@@ -98,7 +98,10 @@ class AnimatedScatter(object):
 
         # add users
         self.reg_users = self.ax_env.scatter(reg_user_locs[0], reg_user_locs[1], s=20, c='gray')
-        self.pref_users = self.ax_env.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
+        if len(pref_user_locs) > 0:
+            self.pref_users = self.ax_env.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
+        else:
+            self.pref_users = []
 
         # add UAVs
         self.uavs = self.ax_env.scatter(x_uavs, y_uavs, s=20, c='r')
@@ -199,7 +202,8 @@ if __name__ == '__main__':
     ]
 
     reg_user_locs = [[100, 200], [100, 200]]
-    pref_user_locs = [[200, 100], [300, 300]]
+    # pref_user_locs = [[200, 100], [300, 300]]
+    pref_user_locs = [[], []]
 
     c_scores_all = [0, 0.2, 0.3, 0.4]
     c_scores_reg = [0, 0.1, 0.2, 0.3]
