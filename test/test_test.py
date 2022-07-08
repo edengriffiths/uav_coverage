@@ -27,11 +27,47 @@ class GetData(unittest.TestCase):
 
     def test_iq_vals(self):
         ""
-        l = [6, 1, 3, 2, 4, 5]
+        l = [1, 2, 3, 4]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [2, 3])
+
+        l = [1, 2, 3, 4, 5]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [2, 3, 4])
+
+        l = [1, 2, 3, 4, 5, 6]
 
         iq_vals = test.get_interquartile_vals(l)
 
         self.assertEqual(iq_vals, [2, 3, 4, 5])
+
+        l = [1, 2, 3, 4, 5, 6, 7]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [2, 3, 4, 5, 6])
+
+        l = [1, 2, 3, 4, 5, 6, 7, 8]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [2, 3, 4, 5, 6, 7])
+
+        l = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [2, 3, 4, 5, 6, 7, 8])
+
+        l = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        iq_vals = test.get_interquartile_vals(l)
+
+        self.assertEqual(iq_vals, [3, 4, 5, 6, 7, 8])
 
 
 

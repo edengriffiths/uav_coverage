@@ -216,7 +216,8 @@ def write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory)
         settings = uav_gym.envs.env_settings.Settings()
         json.dump(settings.V, f)
 
-    model.save(f"{directory}/model")
+    if model is not None:
+        model.save(f"{directory}/model")
 
 
 def get_graph_data(env, model):
@@ -249,8 +250,7 @@ def get_graph_data(env, model):
     return reg_user_locs, pref_user_locs, np.array(uav_locs), c_scores_all, c_scores_reg, c_scores_pref, fidx
 
 
-def make_mp4(exp_num, env, model):
-    directory = f"experiments/experiment #{exp_num}"
+def make_mp4(env, model, directory):
     reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env,
                                                                                                                 model)
     a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
@@ -286,29 +286,25 @@ if __name__ == '__main__':
         raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
 
     exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
-    # models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
-    # model_id = f"{env_id}_1"
+    models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
+    model_id = f"{env_id}_1"
 
-    # model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
+    model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
 
-    # env = gym.make(env_id, demonstration=False)
-    # # env.seed(0)
-    # env.reset()
-
-    model_id = ''
-    model = None
-    directory = f"experiments/{exp_name}/experiment #{exp_vals}"
+    directory = f"experiments/dems/experiment #{exp_name}"
 
     if os.path.isdir(directory):
         if len(os.listdir(directory)) != 0:
             inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
             if inp == 'n':
-                exp_vals += "_t"
-                directory = f"experiments/{exp_name}/experiment #{exp_vals}"
+                # exp_vals += "_t"
+                # directory = f"experiments/{exp_name}/experiment #{exp_vals}"
+                exp_name += "_t_t"
+                directory = f"experiments/dems/experiment #{exp_name}"
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
 
-    write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory)
-    # make_mp4(exp_num, env, model)
-    # show_mp4(gym.make(env_id, alpha=alpha, beta=beta, gamma=gamma, delta=delta), model)
+    # write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory)
+    make_mp4(gym.make(env_id), model, directory)
+    # show_mp4(gym.make(env_id), model)

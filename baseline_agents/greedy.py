@@ -57,13 +57,6 @@ def get_fake_greedy_action(env):
     obs, _, _, _ = new_env.step(best_action)
     uav_locs = env.denormalize_obs(obs)['uav_locs']
 
-    graph = gym_utils.make_graph_from_locs(uav_locs.tolist(), env.home_loc, env.comm_range)
-    dconnect_count = gym_utils.get_disconnected_count(graph)
-
-    # TODO: This might not be necessary, just makes greedy worse. Reward should handle this.
-    # if not all(gym_utils.inbounds(uav_locs, env.sim_size, env.sim_size)) or dconnect_count > 0:
-    #     return [0] * n_uavs
-
     return best_action
 
 
