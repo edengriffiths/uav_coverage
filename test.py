@@ -52,9 +52,8 @@ class Environments:
         done = False
         while not done:
             # model comes from global scope so that pickling still works
-            # action, _states = model.predict(obs, deterministic=True)
+            action, _states = model.predict(obs, deterministic=True)
             # action = get_fake_greedy_action(env)
-            action = env.action_space.sample()
             obs, rewards, done, info = env.step(action)
 
         state = env.denormalize_obs(obs)
@@ -279,28 +278,24 @@ if __name__ == '__main__':
         cov_range = int(sys.argv[3])
         pref_prop = int(sys.argv[4])
         pref_fac = int(sys.argv[5])
-        exp_name = sys.argv[6]
 
     else:
-        # env_id = 'uav-v8'
-        raise TypeError(f"test.py requires one argument, env_id: str, {len(sys.argv) - 1} given")
+        raise TypeError(f"test.py requires arguments 6 arguments, {len(sys.argv) - 1} given")
 
     exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
-    models_dir = f"rl-baselines3-zoo/logs/{exp_name}/{exp_vals}"
+    models_dir = f"rl-baselines3-zoo/logs/{exp_vals}"
     model_id = f"{env_id}_1"
 
     model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
 
-    directory = f"experiments/dems/experiment #{exp_name}"
+    directory = f"experiments/experiment #{exp_vals}"
 
     if os.path.isdir(directory):
         if len(os.listdir(directory)) != 0:
             inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
             if inp == 'n':
-                # exp_vals += "_t"
-                # directory = f"experiments/{exp_name}/experiment #{exp_vals}"
-                exp_name += "_t_t"
-                directory = f"experiments/dems/experiment #{exp_name}"
+                exp_vals += "_t"
+                directory = f"experiments/experiment #{exp_vals}"
                 os.makedirs(directory)
     else:
         os.makedirs(directory)
