@@ -17,27 +17,31 @@ Locs = List[Loc]
 
 
 class AnimatedScatter(object):
-    def __init__(self, reg_user_locs: Locs, pref_user_locs: Locs, l_uav_locs: List[Locs],
-                 cov_scores_all: [float], cov_scores_reg: [float], cov_scores_pref: [float], fidx: [float],
+    def __init__(self, ruser_locs: Locs, puser_locs: Locs,
+                 l_ruavs_locs: List[Locs], l_puav_locs: List[Locs],
+                 cov_scores_all: [float], r_cov_scores: [float], p_cov_scores: [float], fidx: [float],
                  cov_range: int, comm_range: int, sim_size: int):
-        self.reg_user_locs = reg_user_locs
-        self.pref_user_locs = pref_user_locs
-        self.l_uav_locs = np.array(l_uav_locs)
+        self.ruser_locs = ruser_locs
+        self.p_user_locs = puser_locs
+
+        self.l_ruav_locs = np.array(l_ruavs_locs)
+        self.l_puav_locs = np.array(l_puav_locs)
 
         self.l_cov_scores_all = cov_scores_all
-        self.l_cov_scores_reg = cov_scores_reg
-        self.l_cov_scores_pref = cov_scores_pref
+        self.l_cov_scores_r = r_cov_scores
+        self.l_cov_scores_p = p_cov_scores
         self.l_fidx = fidx
 
         self.cov_range = cov_range
         self.comm_range = comm_range
         self.sim_size = sim_size
 
-        self.n_timesteps = len(l_uav_locs)
+        self.n_timesteps = len(l_ruavs_locs)
         self.time_per_epoch = 3
         self.time = [self.time_per_epoch * i for i in range(self.n_timesteps)]
 
-        self.n_uavs = len(l_uav_locs[0])
+        self.n_ruavs = len(l_ruavs_locs[0])
+        self.n_puavs = len(l_puav_locs[0])
 
         # set up figures and axes
         # ---
@@ -75,7 +79,8 @@ class AnimatedScatter(object):
         # ---
         self.rect = matplotlib.patches.Rectangle((0, 0), 50, 20)
 
-        self.circles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(self.n_uavs)]
+        self.rcircles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(self.n_ruavs)]
+        self.pcircles = [plt.Circle((0, 0), self.cov_range, fc='g', alpha=0.3) for _ in range(self.n_puavs)]
 
         # set up animation
         self.ani = animation.FuncAnimation(self.fig, self.update,
@@ -92,35 +97,44 @@ class AnimatedScatter(object):
         # ----
         # set up env axes
 
-        x_uavs, y_uavs = list(zip(*self.l_uav_locs[0]))
-        reg_user_locs = list(zip(*self.reg_user_locs))
-        pref_user_locs = list(zip(*self.pref_user_locs))
+        x_ruavs, y_ruavs = list(zip(*self.l_ruav_locs[0]))
+        x_puavs, y_puavs = list(zip(*self.l_puav_locs[0]))
+        ruser_locs = list(zip(*self.ruser_locs))
+        puser_locs = list(zip(*self.p_user_locs))
 
         # add users
-        self.reg_users = self.ax_env.scatter(reg_user_locs[0], reg_user_locs[1], s=20, c='gray')
-        if len(pref_user_locs) > 0:
-            self.pref_users = self.ax_env.scatter(pref_user_locs[0], pref_user_locs[1], s=20, c='red')
+        self.rusers = self.ax_env.scatter(ruser_locs[0], ruser_locs[1], s=20, c='gray')
+        if len(puser_locs) > 0:
+            self.pusers = self.ax_env.scatter(puser_locs[0], puser_locs[1], s=20, c='red')
         else:
-            self.pref_users = []
+            self.pusers = []
 
         # add UAVs
-        self.uavs = self.ax_env.scatter(x_uavs, y_uavs, s=20, c='r')
+        self.ruavs = self.ax_env.scatter(x_ruavs, y_ruavs, s=20, c='r')
+        self.puavs = self.ax_env.scatter(x_puavs, y_puavs, s=20, c='pink')
 
         # add coverage of UAVs
-        for circle in self.circles:
+        for circle in self.rcircles:
+            self.ax_env.add_patch(circle)
+
+        for circle in self.pcircles:
             self.ax_env.add_patch(circle)
 
         # add connection links between UAVs
-        c = get_connections(self.l_uav_locs[0], comm_range=self.comm_range)
+        c = get_connections(self.l_ruav_locs[0], comm_range=self.comm_range)
         lc = LineCollection(c, linestyles=':')
-        self.uav_connection = self.ax_env.add_collection(lc)
+        self.ruav_connection = self.ax_env.add_collection(lc)
+
+        c = get_connections(self.l_puav_locs[0], comm_range=self.comm_range)
+        lc = LineCollection(c, linestyles=':')
+        self.puav_connection = self.ax_env.add_collection(lc)
 
         # ----
         # set up plot axes
 
         self.line_all, = self.ax_cov.plot([0], self.l_cov_scores_all[0], c='pink', label='Coverage Score (All)')
-        self.line_reg, = self.ax_cov.plot([0], self.l_cov_scores_reg[0], c='gray', label='Coverage Score (Regular)')
-        self.line_pref, = self.ax_cov.plot([0], self.l_cov_scores_pref[0], c='red', label='Coverage Score (Prioritised)')
+        self.line_reg, = self.ax_cov.plot([0], self.l_cov_scores_r[0], c='gray', label='Coverage Score (Regular)')
+        self.line_pref, = self.ax_cov.plot([0], self.l_cov_scores_p[0], c='red', label='Coverage Score (Prioritised)')
 
         self.ax_cov.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
@@ -129,34 +143,46 @@ class AnimatedScatter(object):
         self.ax_fidx.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
         return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
-                self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
+                self.rusers, self.pusers, self.ruavs, self.puavs,
+                self.ruav_connection, self.puav_connection,
+                *self.rcircles, *self.pcircles)
 
     def update(self, i):
 
         # ----
         # Update env axes
-        x_uavs, y_uavs = list(zip(*self.l_uav_locs[i]))
+        x_ruavs, y_ruavs = list(zip(*self.l_ruav_locs[i]))
+        x_puavs, y_puavs = list(zip(*self.l_puav_locs[i]))
 
         # Update UAV positions
-        self.uavs.set_offsets(np.c_[x_uavs, y_uavs])
+        self.ruavs.set_offsets(np.c_[x_ruavs, y_ruavs])
+        self.puavs.set_offsets(np.c_[x_puavs, y_puavs])
 
         # Update UAV coverage positions
-        for circle, x, y in zip(self.circles, x_uavs, y_uavs):
+        for circle, x, y in zip(self.rcircles, x_ruavs, y_ruavs):
+            circle.center = (x, y)
+
+        for circle, x, y in zip(self.pcircles, x_puavs, y_puavs):
             circle.center = (x, y)
 
         # Update links between UAVs
-        c = get_connections(self.l_uav_locs[i], comm_range=self.comm_range)
-        self.uav_connection.set_segments(c)
+        c = get_connections(self.l_ruav_locs[i], comm_range=self.comm_range)
+        self.ruav_connection.set_segments(c)
+
+        c = get_connections(self.l_puav_locs[i], comm_range=self.comm_range)
+        self.puav_connection.set_segments(c)
 
         # ----
         # update plot axes
         self.line_all.set_data(self.time[:i+1], self.l_cov_scores_all[:i+1])
-        self.line_reg.set_data(self.time[:i+1], self.l_cov_scores_reg[:i+1])
-        self.line_pref.set_data(self.time[:i+1], self.l_cov_scores_pref[:i+1])
+        self.line_reg.set_data(self.time[:i+1], self.l_cov_scores_r[:i + 1])
+        self.line_pref.set_data(self.time[:i+1], self.l_cov_scores_p[:i + 1])
         self.line_fidx.set_data(self.time[:i+1], self.l_fidx[:i+1])
 
         return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
-                self.reg_users, self.pref_users, self.uavs, self.uav_connection, *self.circles)
+                self.rusers, self.pusers, self.ruavs, self.puavs,
+                self.ruav_connection, self.puav_connection,
+                *self.rcircles, *self.pcircles)
 
 
 def edge_to_locs(g: nx.Graph, e: Tuple[int]):
@@ -186,7 +212,7 @@ if __name__ == '__main__':
     #     [[200, 0], [200, 0]],
     # ]
 
-    uav_locs = [
+    ruav_locs = [
         [
             [0, 0], [0, 0], [0, 0]
         ],
@@ -201,9 +227,24 @@ if __name__ == '__main__':
         ]
     ]
 
+    puav_locs = [
+        [
+            [0, 0]
+        ],
+        [
+            [0, 50]
+        ],
+        [
+            [0, 100]
+        ],
+        [
+            [50, 100]
+        ]
+    ]
+
     reg_user_locs = [[100, 200], [100, 200]]
-    # pref_user_locs = [[200, 100], [300, 300]]
-    pref_user_locs = [[], []]
+    pref_user_locs = [[200, 100], [300, 300]]
+
 
     c_scores_all = [0, 0.2, 0.3, 0.4]
     c_scores_reg = [0, 0.1, 0.2, 0.3]
@@ -212,7 +253,8 @@ if __name__ == '__main__':
 
     a = AnimatedScatter(reg_user_locs,
                         pref_user_locs,
-                        uav_locs,
+                        ruav_locs,
+                        puav_locs,
                         c_scores_all,
                         c_scores_reg,
                         c_scores_pref,
