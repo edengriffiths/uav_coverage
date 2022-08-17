@@ -261,45 +261,56 @@ def make_mp4(env, model, directory):
     a.ani.save(f, writer=writervideo)
 
 
-def show_mp4(env, model):
-    reg_user_locs, pref_user_locs, l_uav_locs, c_scores_all, c_scores_reg, c_scores_pref, fidx = get_graph_data(env,
-                                                                                                                model)
-    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs, l_uav_locs.tolist(),
-                                c_scores_all, c_scores_reg, c_scores_pref, fidx,
-                                cov_range=env.cov_range, comm_range=env.comm_range, sim_size=env.sim_size)
-    plt.show()
+def show_mp4(renv, rmodel, penv, pmodel):
+    reg_user_locs, _, l_ruav_locs, c_scores_all, c_scores_reg, _, fidx_reg = get_graph_data(renv, rmodel)
+    pref_user_locs, _, l_puav_locs, _, c_scores_pref, _, fidx_pref = get_graph_data(penv, pmodel)
 
+    c_scores_all = (np.array(c_scores_reg) + np.array(c_scores_pref)) / 2
+
+    # print(pref_user_locs)
+    a = animate.AnimatedScatter(reg_user_locs, pref_user_locs,
+                                l_ruav_locs.tolist(), l_puav_locs.tolist(),
+                                c_scores_all, c_scores_reg, c_scores_pref,
+                                fidx_reg, fidx_pref,
+                                cov_range=renv.cov_range, comm_range=renv.comm_range, sim_size=renv.sim_size)
+    f = rf"animation1.mp4"
+    writervideo = animation.FFMpegWriter(fps=10)
+    a.ani.save(f, writer=writervideo)
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 7:
-        env_id = sys.argv[1]
-        n_uavs = int(sys.argv[2])
-        cov_range = int(sys.argv[3])
-        pref_prop = int(sys.argv[4])
-        pref_fac = int(sys.argv[5])
+    # if len(sys.argv) == 7:
+    #     env_id = sys.argv[1]
+    #     n_uavs = int(sys.argv[2])
+    #     cov_range = int(sys.argv[3])
+    #     pref_prop = int(sys.argv[4])
+    #     pref_fac = int(sys.argv[5])
+    #
+    # else:
+    #     raise TypeError(f"test.py requires arguments 6 arguments, {len(sys.argv) - 1} given")
+    #
+    # exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
+    # models_dir = f"rl-baselines3-zoo/logs/{exp_vals}"
+    # model_id = f"{env_id}_1"
+    #
+    # model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
+    #
+    # directory = f"experiments/experiment #{exp_vals}"
+    #
+    # if os.path.isdir(directory):
+    #     if len(os.listdir(directory)) != 0:
+    #         inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
+    #         if inp == 'n':
+    #             exp_vals += "_t"
+    #             directory = f"experiments/experiment #{exp_vals}"
+    #             os.makedirs(directory)
+    # else:
+    #     os.makedirs(directory)
 
-    else:
-        raise TypeError(f"test.py requires arguments 6 arguments, {len(sys.argv) - 1} given")
-
-    exp_vals = f"{n_uavs}_{cov_range}_{pref_prop}_{pref_fac}"
-    models_dir = f"rl-baselines3-zoo/logs/{exp_vals}"
-    model_id = f"{env_id}_1"
-
-    model = PPO.load(f"{models_dir}/ppo/{model_id}/best_model")
-
-    directory = f"experiments/experiment #{exp_vals}"
-
-    if os.path.isdir(directory):
-        if len(os.listdir(directory)) != 0:
-            inp = input(f'Are you sure you want to overwrite experiment {model_id}? y/n ')
-            if inp == 'n':
-                exp_vals += "_t"
-                directory = f"experiments/experiment #{exp_vals}"
-                os.makedirs(directory)
-    else:
-        os.makedirs(directory)
-
+    env_id = 'uav-v0'
     # write_data(env_id, n_uavs, cov_range, pref_prop, pref_fac, model, directory)
-    make_mp4(gym.make(env_id), model, directory)
-    # show_mp4(gym.make(env_id), model)
+    # make_mp4(gym.make(env_id), model, directory)
+    show_mp4(gym.make(env_id),
+             PPO.load(f"rl-baselines3-zoo/logs/pref_prop/4_200_0_4/ppo/uav-v0_1/best_model"),
+             gym.make(env_id, n_uavs=3, n_users=10),
+             PPO.load("rl-baselines3-zoo/logs/3_200_0_4/ppo/uav-v0_1/best_model"))

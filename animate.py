@@ -15,14 +15,23 @@ from uav_gym.utils import make_graph_from_locs
 Loc = List[Union[np.float32]]
 Locs = List[Loc]
 
+RUSER_COLOUR = 'Gray'
+PUSER_COLOUR = 'Red'
+
+RUAV_COLOUR = 'Black'
+PUAV_COLOUR = 'Black'
+
+RCOV_COLOUR = 'Green'
+PCOV_COLOUR = 'Blue'
 
 class AnimatedScatter(object):
     def __init__(self, ruser_locs: Locs, puser_locs: Locs,
                  l_ruavs_locs: List[Locs], l_puav_locs: List[Locs],
-                 cov_scores_all: [float], r_cov_scores: [float], p_cov_scores: [float], fidx: [float],
+                 cov_scores_all: [float], r_cov_scores: [float], p_cov_scores: [float],
+                 rfidx: [float], pfidx: [float],
                  cov_range: int, comm_range: int, sim_size: int):
         self.ruser_locs = ruser_locs
-        self.p_user_locs = puser_locs
+        self.puser_locs = puser_locs
 
         self.l_ruav_locs = np.array(l_ruavs_locs)
         self.l_puav_locs = np.array(l_puav_locs)
@@ -30,7 +39,8 @@ class AnimatedScatter(object):
         self.l_cov_scores_all = cov_scores_all
         self.l_cov_scores_r = r_cov_scores
         self.l_cov_scores_p = p_cov_scores
-        self.l_fidx = fidx
+        self.l_rfidx = rfidx
+        self.l_pfidx = pfidx
 
         self.cov_range = cov_range
         self.comm_range = comm_range
@@ -79,8 +89,8 @@ class AnimatedScatter(object):
         # ---
         self.rect = matplotlib.patches.Rectangle((0, 0), 50, 20)
 
-        self.rcircles = [plt.Circle((0, 0), self.cov_range, fc='b', alpha=0.3) for _ in range(self.n_ruavs)]
-        self.pcircles = [plt.Circle((0, 0), self.cov_range, fc='g', alpha=0.3) for _ in range(self.n_puavs)]
+        self.rcircles = [plt.Circle((0, 0), self.cov_range, fc=RCOV_COLOUR, alpha=0.3) for _ in range(self.n_ruavs)]
+        self.pcircles = [plt.Circle((0, 0), self.cov_range, fc=PCOV_COLOUR, alpha=0.3) for _ in range(self.n_puavs)]
 
         # set up animation
         self.ani = animation.FuncAnimation(self.fig, self.update,
@@ -100,18 +110,18 @@ class AnimatedScatter(object):
         x_ruavs, y_ruavs = list(zip(*self.l_ruav_locs[0]))
         x_puavs, y_puavs = list(zip(*self.l_puav_locs[0]))
         ruser_locs = list(zip(*self.ruser_locs))
-        puser_locs = list(zip(*self.p_user_locs))
+        puser_locs = list(zip(*self.puser_locs))
 
         # add users
-        self.rusers = self.ax_env.scatter(ruser_locs[0], ruser_locs[1], s=20, c='gray')
+        self.rusers = self.ax_env.scatter(ruser_locs[0], ruser_locs[1], s=20, c=RUSER_COLOUR)
         if len(puser_locs) > 0:
-            self.pusers = self.ax_env.scatter(puser_locs[0], puser_locs[1], s=20, c='red')
+            self.pusers = self.ax_env.scatter(puser_locs[0], puser_locs[1], s=20, c=PUSER_COLOUR)
         else:
             self.pusers = []
 
         # add UAVs
-        self.ruavs = self.ax_env.scatter(x_ruavs, y_ruavs, s=20, c='r')
-        self.puavs = self.ax_env.scatter(x_puavs, y_puavs, s=20, c='pink')
+        self.ruavs = self.ax_env.scatter(x_ruavs, y_ruavs, s=20, c=RUAV_COLOUR)
+        self.puavs = self.ax_env.scatter(x_puavs, y_puavs, s=20, c=PUAV_COLOUR)
 
         # add coverage of UAVs
         for circle in self.rcircles:
@@ -133,16 +143,18 @@ class AnimatedScatter(object):
         # set up plot axes
 
         self.line_all, = self.ax_cov.plot([0], self.l_cov_scores_all[0], c='pink', label='Coverage Score (All)')
-        self.line_reg, = self.ax_cov.plot([0], self.l_cov_scores_r[0], c='gray', label='Coverage Score (Regular)')
-        self.line_pref, = self.ax_cov.plot([0], self.l_cov_scores_p[0], c='red', label='Coverage Score (Prioritised)')
+        self.line_reg, = self.ax_cov.plot([0], self.l_cov_scores_r[0], c=RUSER_COLOUR, label='Coverage Score (Regular)')
+        self.line_pref, = self.ax_cov.plot([0], self.l_cov_scores_p[0], c=PUSER_COLOUR, label='Coverage Score (Prioritised)')
 
         self.ax_cov.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
-        self.line_fidx, = self.ax_fidx.plot([0], self.l_fidx[0], c='blue', label='Fairness Index')
+        self.line_rfidx, = self.ax_fidx.plot([0], self.l_rfidx[0], c=RUSER_COLOUR, label='Fairness Index (Regular)')
+        self.line_pfidx, = self.ax_fidx.plot([0], self.l_pfidx[0], c=PUSER_COLOUR, label='Fairness Index (Prioritised)')
 
         self.ax_fidx.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
-        return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
+        return (self.line_all, self.line_reg, self.line_pref,
+                self.line_rfidx, self.line_pfidx,
                 self.rusers, self.pusers, self.ruavs, self.puavs,
                 self.ruav_connection, self.puav_connection,
                 *self.rcircles, *self.pcircles)
@@ -177,9 +189,12 @@ class AnimatedScatter(object):
         self.line_all.set_data(self.time[:i+1], self.l_cov_scores_all[:i+1])
         self.line_reg.set_data(self.time[:i+1], self.l_cov_scores_r[:i + 1])
         self.line_pref.set_data(self.time[:i+1], self.l_cov_scores_p[:i + 1])
-        self.line_fidx.set_data(self.time[:i+1], self.l_fidx[:i+1])
 
-        return (self.line_all, self.line_reg, self.line_pref, self.line_fidx,
+        self.line_rfidx.set_data(self.time[:i+1], self.l_rfidx[:i+1])
+        self.line_pfidx.set_data(self.time[:i + 1], self.l_pfidx[:i + 1])
+
+        return (self.line_all, self.line_reg, self.line_pref,
+                self.line_rfidx, self.line_pfidx,
                 self.rusers, self.pusers, self.ruavs, self.puavs,
                 self.ruav_connection, self.puav_connection,
                 *self.rcircles, *self.pcircles)
@@ -206,60 +221,61 @@ def get_connections(uav_locs, comm_range):
 
 
 if __name__ == '__main__':
+    pass
     # uav_locs = [
     #     [[0, 0], [0, 0]],
     #     [[100, 0], [100, 0]],
     #     [[200, 0], [200, 0]],
     # ]
 
-    ruav_locs = [
-        [
-            [0, 0], [0, 0], [0, 0]
-        ],
-        [
-            [50, 0], [0, 50], [0, 0]
-        ],
-        [
-            [100, 50], [50, 100], [0, 0]
-        ],
-        [
-            [200, 100], [100, 50], [0, 0]
-        ]
-    ]
-
-    puav_locs = [
-        [
-            [0, 0]
-        ],
-        [
-            [0, 50]
-        ],
-        [
-            [0, 100]
-        ],
-        [
-            [50, 100]
-        ]
-    ]
-
-    reg_user_locs = [[100, 200], [100, 200]]
-    pref_user_locs = [[200, 100], [300, 300]]
-
-
-    c_scores_all = [0, 0.2, 0.3, 0.4]
-    c_scores_reg = [0, 0.1, 0.2, 0.3]
-    c_scores_pref = [0, 0.3, 0.4, 0.5]
-    fidx = [0.5, 0.4, 0.4, 0.5]
-
-    a = AnimatedScatter(reg_user_locs,
-                        pref_user_locs,
-                        ruav_locs,
-                        puav_locs,
-                        c_scores_all,
-                        c_scores_reg,
-                        c_scores_pref,
-                        fidx,
-                        cov_range=200,
-                        comm_range=500,
-                        sim_size=1000)
-    plt.show()
+    # ruav_locs = [
+    #     [
+    #         [0, 0], [0, 0], [0, 0]
+    #     ],
+    #     [
+    #         [50, 0], [0, 50], [0, 0]
+    #     ],
+    #     [
+    #         [100, 50], [50, 100], [0, 0]
+    #     ],
+    #     [
+    #         [200, 100], [100, 50], [0, 0]
+    #     ]
+    # ]
+    #
+    # puav_locs = [
+    #     [
+    #         [0, 0]
+    #     ],
+    #     [
+    #         [0, 50]
+    #     ],
+    #     [
+    #         [0, 100]
+    #     ],
+    #     [
+    #         [50, 100]
+    #     ]
+    # ]
+    #
+    # reg_user_locs = [[100, 200], [100, 200]]
+    # pref_user_locs = [[200, 100], [300, 300]]
+    #
+    #
+    # c_scores_all = [0, 0.2, 0.3, 0.4]
+    # c_scores_reg = [0, 0.1, 0.2, 0.3]
+    # c_scores_pref = [0, 0.3, 0.4, 0.5]
+    # fidx = [0.5, 0.4, 0.4, 0.5]
+    #
+    # a = AnimatedScatter(reg_user_locs,
+    #                     pref_user_locs,
+    #                     ruav_locs,
+    #                     puav_locs,
+    #                     c_scores_all,
+    #                     c_scores_reg,
+    #                     c_scores_pref,
+    #                     fidx,
+    #                     cov_range=200,
+    #                     comm_range=500,
+    #                     sim_size=1000)
+    # plt.show()
